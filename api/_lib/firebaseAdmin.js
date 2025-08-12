@@ -33,10 +33,22 @@ try {
       throw new Error('FIREBASE_SERVICE_ACCOUNT_JSON is not valid JSON: ' + e.message);
     }
     if (parsed.private_key && typeof parsed.private_key === 'string') {
-      // Normalize escaped newlines
-      parsed.private_key = parsed.private_key.replace(/\\n/g, '\n');
+      // Normalize escaped newlines and CRLF to LF
+      let pk = parsed.private_key;
+      pk = pk.replace(/\\n/g, '\n');
+      pk = pk.replace(/\r\n/g, '\n');
+      pk = pk.trim();
+      // Ensure final newline (some parsers require it)
+      if (!pk.endsWith('\n')) pk += '\n';
+      parsed.private_key = pk;
     }
-    const creds = admin.credential.cert(parsed);
+    let creds;
+    try {
+      creds = admin.credential.cert(parsed);
+    } catch (pemErr) {
+      console.error('Credential cert creation failed:', pemErr);
+      throw pemErr;
+    }
     const initOptions = { credential: creds, projectId };
     if (process.env.FIREBASE_STORAGE_BUCKET) initOptions.storageBucket = process.env.FIREBASE_STORAGE_BUCKET;
     console.log('Initializing Firebase Admin with project:', projectId);
