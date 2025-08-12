@@ -20,16 +20,20 @@ const Home = () => {
         const res = await api.get('/products');
         if (!res.ok) throw new Error('Failed to load products');
         const data = await res.json();
-        const normalized = (data.items || []).map(p => ({
-          id: p.id,
-          name: p.name,
-          price: p.price,
-          category: p.category,
-          thumbnail: p.thumbnail || null,
-          images: [], // list endpoint omits images; components will fallback
-          sizes: Array.isArray(p.sizes) ? p.sizes : [],
-          colors: Array.isArray(p.colors) ? p.colors : [],
-        }));
+        const normalized = (data.items || []).map(p => {
+          const images = Array.isArray(p.images) ? p.images : [];
+          const thumbnail = p.thumbnail || (images.length > 0 ? images[0] : null);
+          return {
+            id: p.id,
+            name: p.name,
+            price: p.price,
+            category: p.category,
+            thumbnail,
+            images,
+            sizes: Array.isArray(p.sizes) ? p.sizes : [],
+            colors: Array.isArray(p.colors) ? p.colors : [],
+          };
+        });
         if (isMounted) {
           setProducts(normalized);
           setFeaturedProduct(normalized[0] || null);
