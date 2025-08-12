@@ -20,17 +20,21 @@ const Products = () => {
         const res = await api.get('/products');
         if (!res.ok) throw new Error('Failed to load products');
         const data = await res.json();
-        // Backend returns items with: id, name, price, category, imageCount, sizes, colors
-        const normalized = (data.items || []).map(p => ({
-          id: p.id,
-          name: p.name,
-          price: p.price,
-          category: p.category,
-          thumbnail: p.thumbnail || null,
-          images: [], // list payload omits images; ProductCard will use thumbnail/placeholder
-          sizes: Array.isArray(p.sizes) ? p.sizes : [],
-          colors: Array.isArray(p.colors) ? p.colors : [],
-        }));
+        // Normalize items; preserve images and derive thumbnail if missing
+        const normalized = (data.items || []).map(p => {
+          const images = Array.isArray(p.images) ? p.images : [];
+          const thumbnail = p.thumbnail || (images.length > 0 ? images[0] : null);
+          return {
+            id: p.id,
+            name: p.name,
+            price: p.price,
+            category: p.category,
+            thumbnail,
+            images,
+            sizes: Array.isArray(p.sizes) ? p.sizes : [],
+            colors: Array.isArray(p.colors) ? p.colors : [],
+          };
+        });
         if (isMounted) setProducts(normalized);
       } catch (e) {
         console.error('[Products] Failed to fetch products:', e);
