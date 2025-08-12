@@ -10,17 +10,14 @@ module.exports = async function handler(req, res) {
   if (req.method === 'GET') {
     try {
       res.setHeader('Cache-Control', 'no-store');
-      const { limit = 20, cursor } = req.query;
-      let query = col.orderBy('createdAt', 'desc').limit(Number(limit));
-      if (cursor) {
-        const cursorDoc = await col.doc(cursor).get();
-        if (cursorDoc.exists) query = query.startAfter(cursorDoc);
-      }
-      const snap = await query.get();
+      const { limit = 20 } = req.query;
+      // Simple query without orderBy to avoid index issues in new Firestore
+      const snap = await col.limit(Number(limit)).get();
       const items = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
       return res.status(200).json({ items, nextCursor: snap.docs.at(-1)?.id || null });
     } catch (e) {
-      return res.status(500).json({ error: e.message });
+      console.error('GET /products error:', e);
+      return res.status(500).json({ error: e.message, stack: e.stack });
     }
   }
 
