@@ -24,6 +24,9 @@
     "swiper": "^11.2.10",
     "tailwindcss": "^3.4.17"
   },
+  "engines": {
+    "node": "18.x"
+  },
   "browserslist": {
     "production": [
       ">0.2%",
