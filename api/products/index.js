@@ -32,7 +32,6 @@ module.exports = async function handler(req, res) {
         name: data.name,
         description: data.description || '',
         price: Number(data.price),
-        originalPrice: data.originalPrice ? Number(data.originalPrice) : undefined,
         category: data.category || null,
         sizes: data.sizes || [],
         colors: data.colors || [],
@@ -41,6 +40,14 @@ module.exports = async function handler(req, res) {
         createdAt: new Date().toISOString(),
         updatedAt: new Date().toISOString(),
       };
+      // Include originalPrice only if provided
+      if (data.originalPrice !== undefined && data.originalPrice !== null && data.originalPrice !== '') {
+        payload.originalPrice = Number(data.originalPrice);
+      }
+      // Remove any undefined values defensively
+      Object.keys(payload).forEach((k) => {
+        if (payload[k] === undefined) delete payload[k];
+      });
       const ref = await col.add(payload);
       return res.status(201).json({ id: ref.id, ...payload });
     } catch (e) {

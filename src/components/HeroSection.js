@@ -5,11 +5,18 @@ import heroBg from '../assets/hero.jpg';
 const HeroSection = () => {
   return (
     <section 
-      className="h-[85vh] md:h-[90vh] relative bg-cover bg-top md:bg-center bg-no-repeat flex items-end justify-center pb-24 md:pb-32 overflow-hidden"
-      style={{
-        backgroundImage: `url(${heroBg})`
-      }}
+      className="h-[85vh] md:h-[90vh] relative flex items-end justify-center pb-24 md:pb-32 overflow-hidden"
     >
+      {/* Background image as <img> for better quality handling */}
+      <img
+        src={heroBg}
+        srcSet={`${heroBg} 1x, ${heroBg} 2x`}
+        sizes="100vw"
+        alt="Barbari Store Hero"
+        className="absolute inset-0 w-full h-full object-cover object-top md:object-center select-none pointer-events-none"
+        decoding="async"
+        loading="eager"
+      />
       {/* Background Overlay (static) */}
       <div className="absolute inset-0 bg-black/10 sm:bg-black/20 md:bg-black/40"></div>
       

@@ -223,13 +223,13 @@ const ProductDetail = () => {
                   <>
                     <button
                       onClick={handleAddToCart}
-                      className="w-full bg-dark text-white py-3 px-6 rounded-lg hover:bg-gray-800 transition-colors duration-300 font-semibold"
+                      className="w-full bg-gray-500 text-white py-3 px-6 rounded-lg hover:bg-gray-600 transition-colors duration-300 font-semibold"
                     >
                       Add to Cart
                     </button>
                     <button
                       onClick={handleBuyNow}
-                      className="w-full bg-red-600 text-white py-3 px-6 rounded-lg hover:bg-red-700 transition-colors duration-300 font-semibold"
+                      className="w-full bg-pink-500 text-white py-3 px-6 rounded-lg hover:bg-pink-600 transition-colors duration-300 font-semibold"
                     >
                       Buy Now
                     </button>

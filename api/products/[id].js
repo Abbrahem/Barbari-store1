@@ -30,11 +30,18 @@ module.exports = async function handler(req, res) {
       const payload = {
         ...existing,
         ...data,
+        // numeric fields: only override if provided
         price: data.price !== undefined ? Number(data.price) : existing.price,
         originalPrice: data.originalPrice !== undefined ? Number(data.originalPrice) : existing.originalPrice,
+        // arrays/strings: keep existing when not provided
         images,
+        description: data.description !== undefined ? data.description : existing.description,
         updatedAt: new Date().toISOString(),
       };
+      // Remove undefined values to satisfy Firestore
+      Object.keys(payload).forEach((k) => {
+        if (payload[k] === undefined) delete payload[k];
+      });
       await docRef.set(payload);
       return res.status(200).json({ id, ...payload });
     } catch (e) {
