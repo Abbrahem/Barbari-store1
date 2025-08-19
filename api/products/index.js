@@ -26,12 +26,28 @@ module.exports = async function handler(req, res) {
     if (!user) return;
     try {
       res.setHeader('Cache-Control', 'no-store');
-      const data = req.body || {};
+      let data = req.body || {};
+      // In some runtimes body might be a JSON string; try to parse
+      if (typeof data === 'string') {
+        try { data = JSON.parse(data); } catch {}
+      }
+      if (!data || typeof data !== 'object') {
+        return res.status(400).json({ error: 'Invalid JSON body' });
+      }
+      // Validate required fields
+      const priceNum = Number(data.price);
+      if (!data.name || !Number.isFinite(priceNum) || !data.category) {
+        return res.status(400).json({ error: 'Missing required fields: name, price, category' });
+      }
+      if (!Array.isArray(data.sizes) || !Array.isArray(data.colors)) {
+        return res.status(400).json({ error: 'Invalid sizes or colors (must be arrays)' });
+      }
+      // images optional but ensure array; client should upload to storage and send URLs
       const images = Array.isArray(data.images) ? data.images : [];
       const payload = {
-        name: data.name,
-        description: data.description || '',
-        price: Number(data.price),
+        name: String(data.name || '').trim(),
+        description: data.description ? String(data.description) : '',
+        price: priceNum,
         category: data.category || null,
         sizes: data.sizes || [],
         colors: data.colors || [],
