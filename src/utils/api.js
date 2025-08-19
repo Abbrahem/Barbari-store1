@@ -1,6 +1,14 @@
 import { auth } from '../firebase/config';
 
-const API_BASE = process.env.REACT_APP_API_BASE || '/api';
+// Base API URL
+let API_BASE = process.env.REACT_APP_API_BASE || '/api';
+// If running in production and someone accidentally set a localhost API, fall back to same-origin /api
+if (process.env.NODE_ENV === 'production') {
+  const raw = process.env.REACT_APP_API_BASE || '';
+  if (raw.includes('localhost') || raw.includes('127.0.0.1')) {
+    API_BASE = '/api';
+  }
+}
 
 async function withAuthHeaders(options = {}, { forceRefresh = false } = {}) {
   const user = auth.currentUser;
