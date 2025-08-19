@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import Swal from 'sweetalert2';
 import { auth } from '../../firebase/config';
 import { api } from '../../utils/api';
+import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
 
 const AddProduct = ({ editProduct = null, onDoneEdit }) => {
   const [formData, setFormData] = useState({
@@ -150,11 +151,17 @@ const AddProduct = ({ editProduct = null, onDoneEdit }) => {
         // Update product: send JSON; backend should keep existing images if none are provided
         res = await api.put(`/products/${editProduct.id}`, payload, { requireAuth: true });
       } else {
-        // Create product: send multipart with images
-        const fd = new FormData();
-        fd.append('data', JSON.stringify(payload));
-        selectedImages.forEach((file) => fd.append('images', file));
-        res = await api.postForm('/products', fd, { requireAuth: true });
+        // Create product: upload images to Firebase Storage and send URLs as JSON
+        const storage = getStorage();
+        const uploadedUrls = [];
+        for (const file of selectedImages) {
+          const path = `products/${Date.now()}_${Math.random().toString(36).slice(2)}_${file.name}`;
+          const fileRef = storageRef(storage, path);
+          await uploadBytes(fileRef, file);
+          const url = await getDownloadURL(fileRef);
+          uploadedUrls.push(url);
+        }
+        res = await api.post('/products', { ...payload, images: uploadedUrls }, { requireAuth: true });
       }
 
       if (!res.ok) {
