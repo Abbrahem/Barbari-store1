@@ -32,6 +32,7 @@ router.get('/', async (req, res) => {
           category: data.category,
           thumbnail: Array.isArray(data.images) && data.images.length > 0 ? data.images[0] : null,
           imageCount: Array.isArray(data.images) ? data.images.length : 0,
+          soldOut: data.soldOut === true,
           sizes: Array.isArray(data.sizes) ? data.sizes : [],
           colors: Array.isArray(data.colors) ? data.colors : [],
         };
@@ -40,27 +41,35 @@ router.get('/', async (req, res) => {
       nextCursor = lastDoc ? lastDoc.id : null;
     } catch (err) {
       // Fallback: no ordering (handles collections with mixed createdAt types)
-      console.warn('[products] Fallback listing without createdAt order:', err?.message || err);
-      const snap = await col.limit(Number(limit)).get();
-      items = snap.docs.map((d) => {
-        const data = d.data() || {};
-        return {
-          id: d.id,
-          name: data.name,
-          price: data.price,
-          category: data.category,
-          thumbnail: Array.isArray(data.images) && data.images.length > 0 ? data.images[0] : null,
-          imageCount: Array.isArray(data.images) ? data.images.length : 0,
-          sizes: Array.isArray(data.sizes) ? data.sizes : [],
-          colors: Array.isArray(data.colors) ? data.colors : [],
-        };
-      });
-      nextCursor = null; // basic fallback without pagination cursor
+      console.warn('[products] Primary query failed, trying fallback without createdAt order:', err?.code, err?.message || err);
+      try {
+        const snap = await col.limit(Number(limit)).get();
+        items = snap.docs.map((d) => {
+          const data = d.data() || {};
+          return {
+            id: d.id,
+            name: data.name,
+            price: data.price,
+            category: data.category,
+            thumbnail: Array.isArray(data.images) && data.images.length > 0 ? data.images[0] : null,
+            imageCount: Array.isArray(data.images) ? data.images.length : 0,
+            soldOut: data.soldOut === true,
+            sizes: Array.isArray(data.sizes) ? data.sizes : [],
+            colors: Array.isArray(data.colors) ? data.colors : [],
+          };
+        });
+        nextCursor = null; // basic fallback without pagination cursor
+      } catch (fallbackErr) {
+        console.error('[products] Fallback query also failed:', fallbackErr?.code, fallbackErr?.message || fallbackErr);
+        // Return empty list to avoid breaking the UI while we investigate
+        return res.json({ items: [], nextCursor: null, error: 'products_list_failed' });
+      }
     }
 
     res.json({ items, nextCursor });
   } catch (e) {
-    res.status(500).json({ error: e.message });
+    console.error('[products] Unexpected error in handler:', e?.code, e?.message || e);
+    res.status(500).json({ error: e.message || 'internal_error' });
   }
 });
 
@@ -87,6 +96,7 @@ router.post('/', verifyFirebaseToken, upload.array('images', 6), async (req, res
       images: Array.isArray(images) ? images : [],
       sizes: Array.isArray(data.sizes) ? data.sizes : [],
       colors: Array.isArray(data.colors) ? data.colors : [],
+      soldOut: false,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
       active: data.active !== false,
@@ -125,6 +135,7 @@ router.put('/:id', verifyFirebaseToken, upload.array('images', 6), async (req, r
       originalPrice:
         data.originalPrice !== undefined ? Number(data.originalPrice) : existing.originalPrice,
       images: newImages,
+      soldOut: typeof data.soldOut === 'boolean' ? data.soldOut : (typeof existing.soldOut === 'boolean' ? existing.soldOut : false),
       sizes: Array.isArray(data.sizes) ? data.sizes : (Array.isArray(existing.sizes) ? existing.sizes : []),
       colors: Array.isArray(data.colors) ? data.colors : (Array.isArray(existing.colors) ? existing.colors : []),
       updatedAt: new Date().toISOString(),
@@ -167,3 +178,22 @@ router.delete('/:id', verifyFirebaseToken, async (req, res) => {
 });
 
 export default router;
+
+// Toggle Sold Out (admin) - lightweight PATCH for status only
+router.patch('/:id/soldout', verifyFirebaseToken, async (req, res) => {
+  try {
+    const id = req.params.id;
+    const { soldOut } = req.body || {};
+    if (typeof soldOut !== 'boolean') return res.status(400).json({ error: 'soldOut boolean required' });
+
+    const docRef = col.doc(id);
+    const doc = await docRef.get();
+    if (!doc.exists) return res.status(404).json({ error: 'Not found' });
+
+    await docRef.update({ soldOut, updatedAt: new Date().toISOString() });
+    const updated = (await docRef.get()).data();
+    res.json({ id, ...updated });
+  } catch (e) {
+    res.status(400).json({ error: e.message });
+  }
+});

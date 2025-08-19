@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "shevoo-store",
+  "private_key_id": "aa7f812b3993a47cb3c49438c8a3de835581b3d3",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQC+7Hxi32HUcWqV\nSwRqyDfOadgdMQ2YWmEOjHE4z3c4yWAf9axO4LOLFr2FpCL5qVLfHN5SfBNlDIN2\nLFmJYVlwvXnsyjGZNmLS5Gx3rLl6LWPnDxUAZ63TOehaj1WKBiN5tMZTwL8pWBy6\nZj/In98+pyB/yZOCdnYxsvMI3AjF9Enxv5T+tCaC9mTFdWwW5bsMMuGz9YugDE3K\n2jLL0g/uLGB3Akqo5Dzd4ojLHHf4V5W6tHzRYrVDfEZ/ZEFjWaPV4ifffDiIMKAQ\n9tVnsXRmqSXaLvD/jVsskKhPm2eQJfQkHwdpjKTXrnSpj19AxS9++Be5nDXT7q8L\nLiPgYMbFAgMBAAECggEAKYJ/mbyRB9Af2PUuMOw2i+uBx/kACHGP/AqHXE9pD6Di\nxBgVHjIm/xTS4FE7JHZOtQERCjR9QAFMPL9wORkACe28KkIcrf+/1TPCLHPSgLCJ\nMbWa/pNMHOpQbQ4QTjm+8UlfPFriBQJp/pHYCM3Piw7plzbzmhAY6v3J7tFuG+F8\nocQe4+KU3OgACEj5V2W9YMsDyT4GD5jwMJ1XHiAIdGFD9RrumHMunVhFGd4aXFB4\n6SfHSHIck8z7jBexYwwtYjrcnJuV9tK/zHKWBHyHomBBHpwftMZVnCA36Lub14u5\n0vTeg8O65PmnE1XeHE5tlHNEW9pLMgYfpvApcMI++QKBgQDhpI3X7b7GhoSkUmXr\nVVn9c8Gi5E705h91Kpo9MPi87H5y1fYIuWtjUVsf1n+VeqGTrla81JOp6Oa6S6BK\n4Q2El3xTQyg1Uy41LJ0cnYut0OvJUfEDUocOfCAOiBCiz8xO6a9Y6jOb2+6sFYWD\n5jsTXdwKx19hTh9c2f1tks6I+QKBgQDYnClU9+MDYxW5WPpDqKgE933TMRYfr+eF\n4Dk1dDNGynkx7TEcuXbdBBfwGNM6sKYikwfW/VYP5X2yBTN1ddmT84N27xZWNsC6\n2Ssc5vAhTvMBRht9bpu5dF4TnZcJz9BI9B71bmWBZmyhEx3StWr0G08kRy9XSTwO\nOnJE/7ALLQKBgAQrYT+bMgpDFBJhP2bg1d/cErjq1RarZetpVR5KWF5NVGzUzU4N\n9xEHwNJOyV6+vFuZPhsRJoVeO1035odbrz9C+VYkiIqrtc/fuit8MceNc73tmLGC\nBeLbolACbaREiLbwlH/lG/0GTFu7rhLo3zCVbGp6kqWepu+1S3yJ2O0pAoGAGJmr\nrAW3F4RiTDmJurNl2aKN/LU/cPvWTIMJnEOFK04Fc6EficaadEFpwo/fNXQoeha+\ntjDxXD7RBq3GiVmIC2CFlrVSkRoIy2+skMy9itrfiE6BAr7UGrzXjlzAcZHTcuWe\nunr+NjL+tVBpe6u06OJNG66l9sDPfEIxBhsP0EUCgYBy5B4YhIDnxbb8N3dYqP3A\nlitu+ZhMfmCyVmO+Ttk048CoLe/P2+PamtSmeKKpKLDQQm9Xxy26rk9XYgjqIJSC\nu0cDhL5Hu0t8WW0turerggw+RKXUAKdcfQl07tveRwZ+vPg92BrKQteJQ81uYMy/\niL3BiZJZk6HBeNNUbo2Atg==\n-----END PRIVATE KEY-----\n",
+  "client_email": "firebase-adminsdk-fbsvc@shevoo-store.iam.gserviceaccount.com",
+  "client_id": "110061761620792974888",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/firebase-adminsdk-fbsvc%40shevoo-store.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

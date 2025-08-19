@@ -1,9 +1,15 @@
 import dotenv from 'dotenv';
 import admin from 'firebase-admin';
 import path from 'path';
+import fs from 'fs';
+import { fileURLToPath } from 'url';
 
 // Load .env file from the current working directory (should be /server)
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
+
+// ESM dirname helpers
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 // TEMPORARY FIX: Set hardcoded values for development if .env fails to load
 if (!process.env.GOOGLE_APPLICATION_CREDENTIALS) {
@@ -25,22 +31,41 @@ if (!process.env.FIREBASE_PROJECT_ID) {
   process.exit(1);
 }
 
-const serviceAccountPath = path.resolve(process.env.GOOGLE_APPLICATION_CREDENTIALS);
+// Resolve service account path robustly: if relative, resolve from server/ directory
+const rawCredPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+const serviceAccountPath = path.isAbsolute(rawCredPath)
+  ? rawCredPath
+  : path.resolve(path.join(__dirname, '..'), rawCredPath);
 
-console.log(`[Firebase] Initializing with service account: ${serviceAccountPath}`);
+console.log(`[Firebase] Initializing with credentials @ ${serviceAccountPath} (from env: ${rawCredPath})`);
 
 try {
+  let credential;
+  // Prefer explicit service account JSON to avoid picking up user ADC that can cause UNAUTHENTICATED
+  let resolvedProjectId = process.env.FIREBASE_PROJECT_ID;
+  if (process.env.GOOGLE_APPLICATION_CREDENTIALS && fs.existsSync(serviceAccountPath)) {
+    const json = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf-8'));
+    credential = admin.credential.cert(json);
+    resolvedProjectId = json.project_id || resolvedProjectId;
+    console.log(`[Firebase] Using service account JSON via credential.cert (project_id: ${resolvedProjectId}, client_email: ${json.client_email})`);
+  } else {
+    console.warn('[Firebase] GOOGLE_APPLICATION_CREDENTIALS not set or file missing; using in-memory fallback JSON if provided');
+    const jsonRaw = process.env.FIREBASE_SERVICE_ACCOUNT_JSON || '';
+    if (!jsonRaw) throw new Error('No service account JSON available');
+    const json = JSON.parse(jsonRaw);
+    credential = admin.credential.cert(json);
+    resolvedProjectId = json.project_id || resolvedProjectId;
+  }
+
   admin.initializeApp({
-    credential: admin.credential.cert(serviceAccountPath),
-    projectId: process.env.FIREBASE_PROJECT_ID,
-    storageBucket: process.env.FIREBASE_STORAGE_BUCKET, // This is optional
+    credential,
+    projectId: resolvedProjectId,
   });
-  console.log(`[Firebase] Successfully initialized for project: ${process.env.FIREBASE_PROJECT_ID}`);
+  console.log(`[Firebase] Successfully initialized for project: ${resolvedProjectId}`);
 } catch (error) {
-  console.error(`[Firebase] CRITICAL: Failed to initialize with service account file at '${serviceAccountPath}'.`);
-  console.error('[Firebase] Please ensure the path in your server/.env file is correct and the JSON file exists.');
+  console.error(`[Firebase] CRITICAL: Failed to initialize Firebase Admin.`);
   console.error(`[Firebase] Underlying error: ${error.message}`);
-  process.exit(1); // Stop the server if initialization fails
+  process.exit(1);
 }
 
 const db = admin.firestore();
