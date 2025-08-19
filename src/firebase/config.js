@@ -7,7 +7,7 @@ const firebaseConfig = {
   apiKey: "AIzaSyAq2Tlp8Wy-tjleciZZZCT7cfvRaov4AMY",
   authDomain: "shevoo-store.firebaseapp.com",
   projectId: "shevoo-store",
-  storageBucket: "shevoo-store.firebasestorage.app",
+  storageBucket: "shevoo-store.appspot.com",
   messagingSenderId: "301845318717",
   appId: "1:301845318717:web:7ba290a077650cb9e26e54"
 };
