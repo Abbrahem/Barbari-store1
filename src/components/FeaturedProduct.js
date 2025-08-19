@@ -4,7 +4,10 @@ import { Link } from 'react-router-dom';
 const FeaturedProduct = ({ product }) => {
   if (!product) return null;
   const placeholder = 'https://via.placeholder.com/800x600?text=No+Image';
-  const firstImage = Array.isArray(product.images) && product.images.length > 0 ? product.images[0] : placeholder;
+  const firstImage = (Array.isArray(product.images) && product.images.length > 0)
+    ? product.images[0]
+    : (product.thumbnail || placeholder);
+  const isSoldOut = !!product.soldOut;
 
   return (
     <section className="py-16 bg-white">
@@ -21,16 +24,21 @@ const FeaturedProduct = ({ product }) => {
                 <img
                   src={firstImage}
                   alt={product.name}
-                  className="w-full h-full object-cover"
+                  className={`w-full h-full object-cover ${isSoldOut ? 'opacity-60 grayscale' : ''}`}
                 />
+                {isSoldOut && (
+                  <div className="absolute top-0 left-0 right-0">
+                    <div className="w-full bg-red-600 text-white text-center py-2 text-sm font-extrabold tracking-wider shadow">SOLD OUT</div>
+                  </div>
+                )}
               </div>
               
               {/* Product Details */}
               <div className="p-8 flex flex-col justify-center">
-                <h3 className="text-3xl font-bold mb-4 text-dark">
+                <h3 className={`text-3xl font-bold mb-4 ${isSoldOut ? 'text-gray-500 line-through' : 'text-dark'}`}>
                   {product.name}
                 </h3>
-                <p className="text-2xl font-semibold text-red-600 mb-4">
+                <p className={`text-2xl font-semibold mb-4 ${isSoldOut ? 'text-gray-500' : 'text-red-600'}`}>
                   {product.price} EGP
                 </p>
                 {product.description && (
@@ -73,12 +81,23 @@ const FeaturedProduct = ({ product }) => {
                   )}
                 </div>
                 
-                <Link
-                  to={`/product/${product.id}`}
-                  className="mt-6 bg-dark text-white text-center py-3 px-6 rounded-lg hover:bg-gray-800 transition-colors duration-300 font-semibold"
-                >
-                  View Product
-                </Link>
+                {isSoldOut ? (
+                  <button
+                    type="button"
+                    disabled
+                    className="mt-6 bg-gray-400 text-white text-center py-3 px-6 rounded-lg cursor-not-allowed font-semibold"
+                    aria-disabled="true"
+                  >
+                    Sold Out
+                  </button>
+                ) : (
+                  <Link
+                    to={`/product/${product.id}`}
+                    className="mt-6 bg-dark text-white text-center py-3 px-6 rounded-lg hover:bg-gray-800 transition-colors duration-300 font-semibold"
+                  >
+                    View Product
+                  </Link>
+                )}
               </div>
             </div>
           </div>

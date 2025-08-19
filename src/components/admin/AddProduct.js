@@ -50,10 +50,6 @@ const AddProduct = ({ editProduct = null, onDoneEdit }) => {
     'pants': {
       colors: ['White', 'Black', 'Light Blue', 'Dark Blue', 'Teal', 'Dark Green', 'Brown', 'Gray'],
       sizes: ['30', '32', '34', '36', '38', '40']
-    },
-    'shoes': {
-      colors: ['White', 'Black', 'Gray', 'Baby Blue', 'Blue'],
-      sizes: ['39', '40', '41', '42', '43', '44', '45', '46']
     }
   };
 
@@ -281,7 +277,6 @@ const AddProduct = ({ editProduct = null, onDoneEdit }) => {
               <option value="">Select category</option>
               <option value="t-shirt">T-Shirt</option>
               <option value="pants">Pants</option>
-              <option value="shoes">Shoes</option>
             </select>
           </div>
 

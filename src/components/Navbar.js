@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { FaShoppingCart, FaBars, FaTimes } from 'react-icons/fa';
 import { useCart } from '../context/CartContext';
-import logoImg from '../assets/shevoo.jpeg';
+import logoImg from '../assets/barbary.jpg';
 
 const Navbar = () => {
   const { getTotalItems } = useCart();
@@ -10,9 +10,9 @@ const Navbar = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   
   const slides = [
-    "Explore Shevoo Store Products",
+    "Explore Barbari Store Products",
     "Get 15% Discount on All Items",
-    "Free Shipping for Orders Over 4500 EGP"
+    "Free Shipping Over 4500 EGP"
   ];
 
   useEffect(() => {
@@ -25,7 +25,7 @@ const Navbar = () => {
   return (
     <>
       {/* Top Slider (gradient background) */}
-      <div className="bg-gradient-to-r from-red-600 to-red-800 text-white py-3 relative overflow-hidden">
+      <div className="bg-dark text-white py-3 relative overflow-hidden">
         <div className="container mx-auto px-4">
           <div className="flex justify-center items-center">
             <div className="text-center">
@@ -40,13 +40,18 @@ const Navbar = () => {
       {/* Main Navbar */}
       <nav className="bg-white/90 backdrop-blur-md shadow-lg sticky top-0 z-50">
         <div className="container mx-auto px-4">
-          <div className="flex justify-between items-center py-3">
+          <div className="flex justify-between items-center py-3 relative">
             {/* Logo */}
             <div className="flex items-center">
               <Link to="/" className="flex items-center">
-                <img src={logoImg} alt="Shevoo logo" className="h-10 w-10 mr-2 object-cover rounded-full" />
-                <span className="text-2xl md:text-3xl font-bold text-red-600 hover:text-red-700 transition-colors duration-300">Shevoo</span>
+                <img src={logoImg} alt="Barbari logo" className="h-10 w-10 mr-2 object-cover rounded-full" />
+                <span className="hidden md:inline text-2xl md:text-3xl font-bold text-dark hover:text-gray-800 transition-colors duration-300">بربري</span>
               </Link>
+            </div>
+
+            {/* Mobile centered brand */}
+            <div className="md:hidden absolute left-1/2 -translate-x-1/2 transform">
+              <span className="text-2xl sm:text-3xl font-bold text-dark">بربري</span>
             </div>
 
             {/* Desktop Navigation Menu */}

@@ -35,8 +35,20 @@ const ProductDetail = () => {
           category: data.category || null,
           sizes: Array.isArray(data.sizes) ? data.sizes : [],
           colors: Array.isArray(data.colors) ? data.colors : [],
+          soldOut: !!data.soldOut,
         };
-        if (isMounted) setProduct(normalized);
+        if (isMounted) {
+          setProduct(normalized);
+          if (normalized.soldOut) {
+            Swal.fire({
+              icon: 'info',
+              title: 'Sold Out',
+              text: 'This product is currently sold out.',
+              confirmButtonText: 'Back to Home'
+            }).then(() => navigate('/'));
+            return;
+          }
+        }
       } catch (e) {
         console.error('[ProductDetail] Failed to fetch product:', e);
         if (isMounted) setProduct(null);
@@ -46,6 +58,7 @@ const ProductDetail = () => {
   }, [id]);
 
   const handleAddToCart = () => {
+    if (product?.soldOut) return;
     if (!selectedSize || !selectedColor) {
       Swal.fire({
         icon: 'warning',
@@ -66,6 +79,7 @@ const ProductDetail = () => {
   };
 
   const handleBuyNow = () => {
+    if (product?.soldOut) return;
     if (!selectedSize || !selectedColor) {
       Swal.fire({
         icon: 'warning',
@@ -129,8 +143,8 @@ const ProductDetail = () => {
 
             {/* Product Details */}
             <div className="space-y-6">
-              <h1 className="text-3xl font-bold text-dark break-words break-all">{product.name}</h1>
-              <p className="text-2xl font-bold text-red-600">{product.price} EGP</p>
+              <h1 className={`text-3xl font-bold break-words break-all ${product.soldOut ? 'text-gray-500 line-through' : 'text-dark'}`}>{product.name}</h1>
+              <p className={`text-2xl font-bold ${product.soldOut ? 'text-gray-500' : 'text-red-600'}`}>{product.price} EGP</p>
               <p className="text-gray-600 leading-relaxed break-words break-all">{product.description}</p>
 
               {/* Size Selection */}
@@ -195,18 +209,32 @@ const ProductDetail = () => {
 
               {/* Action Buttons */}
               <div className="space-y-3">
-                <button
-                  onClick={handleAddToCart}
-                  className="w-full bg-dark text-white py-3 px-6 rounded-lg hover:bg-gray-800 transition-colors duration-300 font-semibold"
-                >
-                  Add to Cart
-                </button>
-                <button
-                  onClick={handleBuyNow}
-                  className="w-full bg-red-600 text-white py-3 px-6 rounded-lg hover:bg-red-700 transition-colors duration-300 font-semibold"
-                >
-                  Buy Now
-                </button>
+                {product.soldOut ? (
+                  <>
+                    <button
+                      type="button"
+                      disabled
+                      className="w-full bg-gray-400 text-white py-3 px-6 rounded-lg cursor-not-allowed font-semibold"
+                    >
+                      Sold Out
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <button
+                      onClick={handleAddToCart}
+                      className="w-full bg-dark text-white py-3 px-6 rounded-lg hover:bg-gray-800 transition-colors duration-300 font-semibold"
+                    >
+                      Add to Cart
+                    </button>
+                    <button
+                      onClick={handleBuyNow}
+                      className="w-full bg-red-600 text-white py-3 px-6 rounded-lg hover:bg-red-700 transition-colors duration-300 font-semibold"
+                    >
+                      Buy Now
+                    </button>
+                  </>
+                )}
               </div>
             </div>
           </div>

@@ -19,7 +19,7 @@ const ContactForm = () => {
     
     const message = `New complaint from:\nName: ${formData.name}\nPhone: ${formData.phone}\nMessage: ${formData.message}`;
 
-    const whatsappUrl = `https://wa.me/201002107088?text=${encodeURIComponent(message)}`;
+    const whatsappUrl = `https://wa.me/201272725988?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, '_blank');
     
     // Reset form

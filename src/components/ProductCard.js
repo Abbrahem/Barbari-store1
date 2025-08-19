@@ -30,6 +30,8 @@ const ProductCard = ({ product }) => {
     setCurrentImageIndex(index);
   };
 
+  const isSoldOut = !!product.soldOut;
+
   return (
     <div 
       className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 group"
@@ -41,16 +43,22 @@ const ProductCard = ({ product }) => {
         <img
           src={images[currentImageIndex]}
           alt={product.name}
-          className="w-full h-full object-contain bg-white transition-transform duration-700"
+          className={`w-full h-full object-contain bg-white transition-transform duration-700 ${isSoldOut ? 'opacity-60 grayscale' : ''}`}
         />
+        {/* SOLD OUT Banner (prominent) */}
+        {isSoldOut && (
+          <div className="absolute top-0 left-0 right-0">
+            <div className="w-full bg-red-600 text-white text-center py-2 text-sm font-extrabold tracking-wider shadow">SOLD OUT</div>
+          </div>
+        )}
         
         {/* Overlay with Quick Actions */}
-        <div className={`absolute inset-0 bg-black/20 transition-opacity duration-300 ${isHovered ? 'opacity-100' : 'opacity-0'}`}>
+        <div className={`absolute inset-0 ${isSoldOut ? 'bg-black/20 opacity-100' : 'bg-black/20'} transition-opacity duration-300 ${isHovered && !isSoldOut ? 'opacity-100' : ''}`}>
           <div className="absolute top-4 right-4 flex flex-col space-y-2">
-            <button className="w-10 h-10 bg-white/90 rounded-full flex items-center justify-center hover:bg-red-500 hover:text-white transition-all duration-300 transform hover:scale-110">
+            <button className={`w-10 h-10 bg-white/90 rounded-full flex items-center justify-center transition-all duration-300 transform ${isSoldOut ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-500 hover:text-white hover:scale-110'}`}>
               <FaHeart className="text-gray-600 group-hover:text-red-500" />
             </button>
-            <button className="w-10 h-10 bg-white/90 rounded-full flex items-center justify-center hover:bg-red-500 hover:text-white transition-all duration-300 transform hover:scale-110">
+            <button className={`w-10 h-10 bg-white/90 rounded-full flex items-center justify-center transition-all duration-300 transform ${isSoldOut ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-500 hover:text-white hover:scale-110'}`}>
               <FaShoppingCart className="text-gray-600 group-hover:text-red-500" />
             </button>
           </div>
@@ -77,13 +85,13 @@ const ProductCard = ({ product }) => {
 
       {/* Product Info */}
       <div className="p-6">
-        <h3 className="text-xl font-bold mb-3 text-gray-800 line-clamp-2 group-hover:text-red-600 transition-colors duration-300">
+        <h3 className={`text-xl font-bold mb-3 text-gray-800 line-clamp-2 transition-colors duration-300 ${isSoldOut ? 'line-through text-gray-500' : 'group-hover:text-red-600'}`}>
           {product.name}
         </h3>
         
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-2">
-            <span className="text-2xl font-bold text-red-600">
+            <span className={`text-2xl font-bold ${isSoldOut ? 'text-gray-500' : 'text-red-600'}`}>
               {product.price} EGP
             </span>
             {product.originalPrice && (
@@ -100,12 +108,23 @@ const ProductCard = ({ product }) => {
           </div>
         </div>
         
-        <Link
-          to={`/product/${product.id}`}
-          className="block w-full bg-gradient-to-r from-red-600 to-red-700 text-white text-center py-3 rounded-xl hover:from-red-700 hover:to-red-800 transition-all duration-300 font-semibold transform hover:scale-105 shadow-lg hover:shadow-xl"
-        >
-          View Details
-        </Link>
+        {isSoldOut ? (
+          <button
+            type="button"
+            disabled
+            className="block w-full bg-gray-400 text-white text-center py-3 rounded-xl cursor-not-allowed font-semibold shadow"
+            aria-disabled="true"
+          >
+            Sold Out
+          </button>
+        ) : (
+          <Link
+            to={`/product/${product.id}`}
+            className="block w-full bg-gradient-to-r from-red-600 to-red-700 text-white text-center py-3 rounded-xl hover:from-red-700 hover:to-red-800 transition-all duration-300 font-semibold transform hover:scale-105 shadow-lg hover:shadow-xl"
+          >
+            View Details
+          </Link>
+        )}
       </div>
     </div>
   );

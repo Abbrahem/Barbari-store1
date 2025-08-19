@@ -66,7 +66,7 @@ const AdminDashboard = () => {
       {/* Header */}
       <header className="bg-dark text-white p-4">
         <div className="container mx-auto flex justify-between items-center">
-          <h1 className="text-2xl font-bold">Shevoo Store - Admin Dashboard</h1>
+          <h1 className="text-2xl font-bold">Barbari Store - Admin Dashboard</h1>
           <button
             onClick={handleLogout}
             className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"

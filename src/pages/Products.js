@@ -31,6 +31,7 @@ const Products = () => {
             category: p.category,
             thumbnail,
             images,
+            soldOut: !!p.soldOut,
             sizes: Array.isArray(p.sizes) ? p.sizes : [],
             colors: Array.isArray(p.colors) ? p.colors : [],
           };
@@ -44,11 +45,14 @@ const Products = () => {
     return () => { isMounted = false; };
   }, []);
 
-  // Get category from URL params
+  // Get category from URL params (allow only t-shirt and pants)
   useEffect(() => {
     const category = searchParams.get('category');
-    if (category) {
+    const allowed = new Set(['t-shirt', 'pants']);
+    if (category && allowed.has(category)) {
       setSelectedCategory(category);
+    } else if (category && !allowed.has(category)) {
+      setSelectedCategory('all');
     }
   }, [searchParams]);
 
@@ -134,16 +138,7 @@ const Products = () => {
             >
               Pants
             </button>
-            <button
-              onClick={() => handleCategoryChange('shoes')}
-              className={`px-6 py-2 rounded-lg font-semibold transition-colors ${
-                selectedCategory === 'shoes'
-                  ? 'bg-dark text-white'
-                  : 'bg-gray-200 text-dark hover:bg-gray-300'
-              }`}
-            >
-              Shoes
-            </button>
+            {/* Shoes category removed */}
           </div>
         </div>
 

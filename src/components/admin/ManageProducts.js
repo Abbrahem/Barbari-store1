@@ -72,13 +72,29 @@ const ManageProducts = ({ onEdit }) => {
     }
   };
 
+  const toggleSoldOut = async (product, nextValue) => {
+    try {
+      if (!user) throw new Error('Not signed in');
+      // optimistic UI update
+      setProducts((prev) => prev.map((p) => (p.id === product.id ? { ...p, soldOut: nextValue } : p)));
+      const res = await api.patch(`/products/${product.id}/soldout`, { soldOut: nextValue }, { requireAuth: true });
+      if (!res.ok) {
+        // revert on failure
+        setProducts((prev) => prev.map((p) => (p.id === product.id ? { ...p, soldOut: !nextValue } : p)));
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || 'Failed to update SOLD OUT');
+      }
+    } catch (e) {
+      Swal.fire('Error', e.message || 'Failed to update SOLD OUT', 'error');
+    }
+  };
+
   const getCategoryName = (category) => {
     const categories = {
       't-shirt': 'T-Shirt',
-      'pants': 'Pants',
-      'shoes': 'Shoes'
+      'pants': 'Pants'
     };
-    return categories[category] || category || 'Uncategorized';
+    return categories[category] || 'Uncategorized';
   };
 
   return (
@@ -175,6 +191,19 @@ const ManageProducts = ({ onEdit }) => {
                     >
                       Delete
                     </button>
+                    {/* SOLD OUT toggle */}
+                    <label className="mt-1 inline-flex items-center gap-2 cursor-pointer select-none">
+                      <input
+                        type="checkbox"
+                        checked={!!product.soldOut}
+                        onChange={(e) => toggleSoldOut(product, e.target.checked)}
+                        className="w-4 h-4"
+                      />
+                      <span className="text-sm font-semibold text-dark">SOLD OUT</span>
+                      {product.soldOut && (
+                        <span className="text-green-600 text-sm">✓</span>
+                      )}
+                    </label>
                   </div>
                 </div>
               ))}
@@ -192,6 +221,7 @@ const ManageProducts = ({ onEdit }) => {
                     <th className="text-left py-3 px-4 font-semibold text-dark">Sizes</th>
                     <th className="text-left py-3 px-4 font-semibold text-dark">Colors</th>
                     <th className="text-left py-3 px-4 font-semibold text-dark">Actions</th>
+                    <th className="text-left py-3 px-4 font-semibold text-dark">SOLD OUT</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -251,6 +281,20 @@ const ManageProducts = ({ onEdit }) => {
                             Delete
                           </button>
                         </div>
+                      </td>
+                      <td className="py-3 px-4">
+                        <label className="inline-flex items-center gap-2 cursor-pointer select-none">
+                          <input
+                            type="checkbox"
+                            checked={!!product.soldOut}
+                            onChange={(e) => toggleSoldOut(product, e.target.checked)}
+                            className="w-4 h-4"
+                          />
+                          <span className="text-sm font-semibold text-dark">SOLD OUT</span>
+                          {product.soldOut && (
+                            <span className="text-green-600 text-sm">✓</span>
+                          )}
+                        </label>
                       </td>
                     </tr>
                   ))}

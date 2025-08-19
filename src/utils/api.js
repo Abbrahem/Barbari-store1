@@ -45,6 +45,7 @@ export const api = {
   get: (path, opts) => request(path, { method: 'GET', ...(opts || {}) }),
   post: (path, body, opts) => request(path, { method: 'POST', body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' }, ...(opts || {}) }),
   put: (path, body, opts) => request(path, { method: 'PUT', body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' }, ...(opts || {}) }),
+  patch: (path, body, opts) => request(path, { method: 'PATCH', body: JSON.stringify(body), headers: { 'Content-Type': 'application/json' }, ...(opts || {}) }),
   del: (path, opts) => request(path, { method: 'DELETE', ...(opts || {}) }),
   // Form/multipart helpers (pass FormData directly)
   postForm: (path, formData, opts) => request(path, { method: 'POST', body: formData, ...(opts || {}) }),

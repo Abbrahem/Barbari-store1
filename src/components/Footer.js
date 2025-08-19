@@ -8,7 +8,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
           {/* Store Info */}
           <div>
-            <h3 className="text-2xl font-bold mb-4">Shevoo Store</h3>
+            <h3 className="text-2xl font-bold mb-4">Barbari Store</h3>
             <p className="text-gray-300 mb-4">
               A modern fashion store offering the latest collections at competitive prices.
             </p>
@@ -41,7 +41,7 @@ const Footer = () => {
             <h4 className="text-lg font-semibold mb-4">Contact Us</h4>
             <div className="flex space-x-4">
               <a
-                href="https://www.instagram.com/shevoo_store?igsh=MWdycDl6Mm1kaDNzaQ=="
+                href="https://www.instagram.com/barbari.eg/?igsh=MTVteWZ2MHh3NzVqOA%3D%3D#"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-300 hover:text-white transition-colors"
@@ -49,7 +49,7 @@ const Footer = () => {
                 <FaInstagram className="text-2xl" />
               </a>
               <a
-                href="https://wa.me/201002107088"
+                href="https://wa.me/201272725988"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-gray-300 hover:text-white transition-colors"
@@ -58,14 +58,14 @@ const Footer = () => {
               </a>
             </div>
             <p className="text-gray-300 mt-4">
-              WhatsApp: 01002107088
+              WhatsApp: +20 127 272 5988
             </p>
           </div>
         </div>
         
         <div className="border-t border-gray-700 mt-8 pt-8 text-center">
           <p className="text-gray-300">
-            All rights reserved &copy; 2024 Shevoo Store
+            All rights reserved &copy; 2024 Barbari Store
           </p>
         </div>
       </div>

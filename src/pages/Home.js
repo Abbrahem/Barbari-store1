@@ -30,6 +30,7 @@ const Home = () => {
             category: p.category,
             thumbnail,
             images,
+            soldOut: !!p.soldOut,
             sizes: Array.isArray(p.sizes) ? p.sizes : [],
             colors: Array.isArray(p.colors) ? p.colors : [],
           };
