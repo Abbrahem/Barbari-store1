@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { api } from '../utils/api';
+import { doc, getDoc } from 'firebase/firestore';
+import { db } from '../firebase/config';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import Navbar from '../components/Navbar';
@@ -17,17 +18,18 @@ const ProductDetail = () => {
   const [quantity, setQuantity] = useState(1);
   const [mainImage, setMainImage] = useState(0);
 
-  // Load product by id
+  // Load product by id from Firestore
   useEffect(() => {
     let isMounted = true;
     (async () => {
       try {
-        const res = await api.get(`/products/${id}`);
-        if (!res.ok) throw new Error('Failed to load product');
-        const data = await res.json();
+        const ref = doc(db, 'products', id);
+        const snap = await getDoc(ref);
+        if (!snap.exists()) throw new Error('Product not found');
+        const data = snap.data();
         // Ensure safe defaults
         const normalized = {
-          id: data.id,
+          id: snap.id,
           name: data.name,
           price: data.price,
           description: data.description || '',

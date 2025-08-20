@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
-import { auth } from '../../firebase/config';
-import { api } from '../../utils/api';
+import { auth, db } from '../../firebase/config';
+import { collection, getDocs, deleteDoc, doc, updateDoc } from 'firebase/firestore';
 
 const ManageProducts = ({ onEdit }) => {
   const [products, setProducts] = useState([]);
@@ -11,10 +11,9 @@ const ManageProducts = ({ onEdit }) => {
 
   const fetchProducts = async () => {
     try {
-      const res = await api.get('/products');
-      if (!res.ok) throw new Error('Failed to load products');
-      const data = await res.json();
-      setProducts(data.items || []);
+      const snap = await getDocs(collection(db, 'products'));
+      const items = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
+      setProducts(items);
     } catch (e) {
       Swal.fire('Error', e.message || 'Failed to load products', 'error');
     }
@@ -48,14 +47,9 @@ const ManageProducts = ({ onEdit }) => {
       if (!result.isConfirmed) return;
       try {
         if (!user) throw new Error('Not signed in');
-        const res = await api.del(`/products/${productId}`, { requireAuth: true });
-        if (!res.ok) {
-          const err = await res.json().catch(() => ({}));
-          throw new Error(err.error || 'Delete failed');
-        }
+        await deleteDoc(doc(db, 'products', productId));
         setProducts((prev) => prev.filter((p) => p.id !== productId));
         Swal.fire('Deleted!', 'Product deleted successfully.', 'success');
-        // quick refresh to ensure latest list
         fetchProducts();
       } catch (e) {
         Swal.fire('Error', e.message || 'Failed to delete', 'error');
@@ -77,14 +71,10 @@ const ManageProducts = ({ onEdit }) => {
       if (!user) throw new Error('Not signed in');
       // optimistic UI update
       setProducts((prev) => prev.map((p) => (p.id === product.id ? { ...p, soldOut: nextValue } : p)));
-      const res = await api.patch(`/products/${product.id}/soldout`, { soldOut: nextValue }, { requireAuth: true });
-      if (!res.ok) {
-        // revert on failure
-        setProducts((prev) => prev.map((p) => (p.id === product.id ? { ...p, soldOut: !nextValue } : p)));
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || 'Failed to update SOLD OUT');
-      }
+      await updateDoc(doc(db, 'products', product.id), { soldOut: nextValue });
     } catch (e) {
+      // revert on failure
+      setProducts((prev) => prev.map((p) => (p.id === product.id ? { ...p, soldOut: !nextValue } : p)));
       Swal.fire('Error', e.message || 'Failed to update SOLD OUT', 'error');
     }
   };

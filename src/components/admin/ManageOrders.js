@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import Swal from 'sweetalert2';
-import { auth } from '../../firebase/config';
-import { api } from '../../utils/api';
+import { auth, db } from '../../firebase/config';
+import { collection, getDocs, orderBy, query, doc, updateDoc, deleteDoc } from 'firebase/firestore';
 
 const STATUSES = ['pending', 'processing', 'shipped', 'completed', 'cancelled'];
 const statusStyles = {
@@ -31,13 +31,16 @@ const ManageOrders = () => {
   const fetchOrders = async () => {
     try {
       if (!user) throw new Error('Not signed in');
-      const res = await api.get('/orders', { requireAuth: true });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || 'Failed to load orders');
-      }
-      const data = await res.json();
-      setOrders(data.items || []);
+      const q = query(collection(db, 'orders'), orderBy('createdAt', 'desc'));
+      const snap = await getDocs(q);
+      const items = snap.docs.map((d) => {
+        const data = d.data();
+        const createdAt = data.createdAt && typeof data.createdAt.toMillis === 'function'
+          ? data.createdAt.toMillis()
+          : data.createdAt || null;
+        return { id: d.id, ...data, createdAt };
+      });
+      setOrders(items);
     } catch (e) {
       Swal.fire('Error', e.message || 'Failed to load orders', 'error');
     } finally {
@@ -64,11 +67,7 @@ const ManageOrders = () => {
     });
     if (!confirm.isConfirmed) return;
     try {
-      const res = await api.del(`/orders/${id}`, { requireAuth: true });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || 'Failed to delete');
-      }
+      await deleteDoc(doc(db, 'orders', id));
       setOrders((prev) => prev.filter((o) => o.id !== id));
       Swal.fire('Deleted', 'Order deleted', 'success');
     } catch (e) {
@@ -78,15 +77,9 @@ const ManageOrders = () => {
 
   const handleStatus = async (id, status) => {
     try {
-      const res = await api.put(`/orders/${id}/status`, { status }, { requireAuth: true });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || 'Failed to update status');
-      }
-      const updated = await res.json();
-      setOrders((prev) => prev.map((o) => (o.id === id ? updated : o)));
+      await updateDoc(doc(db, 'orders', id), { status });
+      setOrders((prev) => prev.map((o) => (o.id === id ? { ...o, status } : o)));
       Swal.fire('Updated', 'Order status updated', 'success');
-      fetchOrders();
     } catch (e) {
       Swal.fire('Error', e.message || 'Failed to update', 'error');
     }

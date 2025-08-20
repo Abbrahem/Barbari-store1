@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { api } from '../utils/api';
+import { collection, getDocs, query, where } from 'firebase/firestore';
+import { db } from '../firebase/config';
 import ProductCard from '../components/ProductCard';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { mockProducts } from '../data/mockProducts';
@@ -15,22 +16,23 @@ const Home = () => {
   const [products, setProducts] = useState([]);
   const [featuredProduct, setFeaturedProduct] = useState(null);
 
-  // Load products from backend
+  // Load products from Firestore
   useEffect(() => {
     let isMounted = true;
     (async () => {
       try {
-        const res = await api.get('/products');
-        if (!res.ok) throw new Error('Failed to load products');
-        const data = await res.json();
-        const normalized = (data.items || []).map(p => {
+        const productsRef = collection(db, 'products');
+        const q = query(productsRef, where('active', '!=', false));
+        const snapshot = await getDocs(q);
+        const normalized = snapshot.docs.map(doc => {
+          const p = doc.data();
           const images = Array.isArray(p.images) ? p.images : [];
           const thumbnail = p.thumbnail || (images.length > 0 ? images[0] : null);
           return {
-            id: p.id,
+            id: doc.id,
             name: p.name,
             price: p.price,
-            category: p.category,
+            category: p.category || null,
             thumbnail,
             images,
             soldOut: !!p.soldOut,

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { api } from '../utils/api';
+import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+import { db } from '../firebase/config';
 import { useCart } from '../context/CartContext';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
@@ -39,7 +40,7 @@ const Checkout = () => {
     }
 
     try {
-      // Normalize items for backend
+      // Normalize items for Firestore
       const normalizedItems = items.map((it) => ({
         productId: it.id || it.productId || it.product?.id || null,
         name: it.name,
@@ -50,7 +51,7 @@ const Checkout = () => {
         image: it.image || null,
       }));
 
-      const payload = {
+      const orderData = {
         items: normalizedItems,
         total: Number(totalPrice),
         customer: {
@@ -59,15 +60,13 @@ const Checkout = () => {
           phone1: formData.phone1,
           phone2: formData.phone2 || null,
         },
+        status: 'pending',
+        createdAt: serverTimestamp(),
       };
 
-      const res = await api.post('/orders', payload);
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || 'Failed to place order');
-      }
-
-      await res.json().catch(() => null);
+      // Save order directly to Firestore
+      const ordersRef = collection(db, 'orders');
+      await addDoc(ordersRef, orderData);
 
       Swal.fire({
         icon: 'success',

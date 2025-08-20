@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import Swal from 'sweetalert2';
-import { auth } from '../../firebase/config';
-import { api } from '../../utils/api';
-import { getStorage, ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { auth, db, storage } from '../../firebase/config';
+import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { addDoc, collection, doc, serverTimestamp, updateDoc } from 'firebase/firestore';
 
 const AddProduct = ({ editProduct = null, onDoneEdit }) => {
   const [formData, setFormData] = useState({
@@ -137,40 +137,52 @@ const AddProduct = ({ editProduct = null, onDoneEdit }) => {
         return;
       }
 
-      const payload = {
-        name: formData.name,
-        price: Number(formData.price),
-        description: formData.description,
-        category: formData.category,
-        sizes: formData.sizes,
-        colors: formData.colors,
-        active: true,
-      };
-      let res;
+      // Upload selected images to Firebase Storage and collect URLs
+      let uploadedUrls = [];
+      if (selectedImages.length > 0) {
+        uploadedUrls = await Promise.all(
+          selectedImages.map(async (file) => {
+            const path = `products/${Date.now()}_${file.name}`;
+            const ref = storageRef(storage, path);
+            await uploadBytes(ref, file);
+            return await getDownloadURL(ref);
+          })
+        );
+      }
+
       if (editProduct && editProduct.id) {
-        // Update product: send as FormData with images
-        const formData = new FormData();
-        formData.append('data', JSON.stringify(payload));
-        selectedImages.forEach((file, index) => {
-          formData.append('images', file);
-        });
-        res = await api.putForm(`/products/${editProduct.id}`, formData, { requireAuth: true });
+        // Update existing product
+        const nextImages = uploadedUrls.length > 0 ? [...(formData.images || []), ...uploadedUrls] : (formData.images || []);
+        const updatePayload = {
+          name: formData.name,
+          price: Number(formData.price),
+          description: formData.description,
+          category: formData.category,
+          sizes: formData.sizes,
+          colors: formData.colors,
+          images: nextImages,
+          thumbnail: nextImages[0] || editProduct.thumbnail || null,
+          updatedAt: serverTimestamp(),
+        };
+        await updateDoc(doc(db, 'products', editProduct.id), updatePayload);
       } else {
-        // Create product: send images as FormData to backend (backend will handle base64 conversion)
-        const formData = new FormData();
-        formData.append('data', JSON.stringify(payload));
-        selectedImages.forEach((file, index) => {
-          formData.append('images', file);
-        });
-        res = await api.postForm('/products', formData, { requireAuth: true });
+        // Create new product
+        const images = uploadedUrls;
+        const createPayload = {
+          name: formData.name,
+          price: Number(formData.price),
+          description: formData.description,
+          category: formData.category,
+          sizes: formData.sizes,
+          colors: formData.colors,
+          images,
+          thumbnail: images[0] || null,
+          soldOut: false,
+          active: true,
+          createdAt: serverTimestamp(),
+        };
+        await addDoc(collection(db, 'products'), createPayload);
       }
-
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || `Request failed with ${res.status}`);
-      }
-
-      await res.json();
 
       Swal.fire({
         icon: 'success',
