@@ -3,8 +3,8 @@ import { auth } from '../firebase/config';
 // Base API URL - fallback to /api if backend not available
 let API_BASE = '/api';
 if (process.env.NODE_ENV === 'development') {
-  // Try backend first, fallback to /api
-  API_BASE = process.env.REACT_APP_API_BASE || 'http://localhost:5000/api';
+  // Use explicit override if provided; otherwise default to relative /api to work with Vercel dev/functions
+  API_BASE = process.env.REACT_APP_API_BASE || '/api';
 }
 
 async function withAuthHeaders(options = {}, { forceRefresh = false } = {}) {
