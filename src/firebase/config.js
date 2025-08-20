@@ -1,6 +1,6 @@
-import { initializeApp } from 'firebase/app';
-import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
-import { getAuth, setPersistence, browserLocalPersistence, connectAuthEmulator } from 'firebase/auth';
+import { initializeApp, getApps, getApp } from 'firebase/app';
+import { getFirestore, enableIndexedDbPersistence } from 'firebase/firestore';
+import { getAuth, setPersistence, browserLocalPersistence } from 'firebase/auth';
 import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
@@ -12,20 +12,42 @@ const firebaseConfig = {
   appId: "1:301845318717:web:7ba290a077650cb9e26e54"
 };
 
-const app = initializeApp(firebaseConfig);
+// Initialize Firebase
+let app;
+if (!getApps().length) {
+  app = initializeApp(firebaseConfig);
+} else {
+  app = getApp();
+}
 
-// Initialize Firestore with offline persistence disabled to avoid auth issues
+// Initialize Firestore
 export const db = getFirestore(app);
 
 // Initialize Auth
 export const auth = getAuth(app);
 
-// Set persistence but don't fail if it doesn't work
-setPersistence(auth, browserLocalPersistence).catch(() => {
-  console.log('Auth persistence not available');
-});
+// Set persistence with better error handling
+setPersistence(auth, browserLocalPersistence)
+  .then(() => {
+    console.log('Auth persistence enabled');
+  })
+  .catch((error) => {
+    console.warn('Failed to enable auth persistence:', error);
+  });
 
-// Skip anonymous auth to avoid 400 Bad Request errors
-// Firebase project may not have anonymous auth enabled
+// Enable offline persistence for Firestore
+if (typeof window !== 'undefined') {
+  enableIndexedDbPersistence(db).catch((err) => {
+    if (err.code === 'failed-precondition') {
+      console.warn('Multiple tabs open, persistence can only be enabled in one tab at a time.');
+    } else if (err.code === 'unimplemented') {
+      console.warn('The current browser does not support all of the features required to enable persistence');
+    }
+  });
+}
 
+// Initialize Storage
 export const storage = getStorage(app);
+
+// Log Firebase initialization
+console.log('Firebase initialized successfully');

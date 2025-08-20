@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { api } from '../utils/api';
 import { useSearchParams } from 'react-router-dom';
+import { collection, getDocs, query, where } from 'firebase/firestore';
+import { db } from '../firebase/config';
 import Navbar from '../components/Navbar';
 import Footer from '../components/Footer';
 import ProductCard from '../components/ProductCard';
@@ -12,37 +13,41 @@ const Products = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
 
-  // Load products from backend
+  // Load products from Firestore
   useEffect(() => {
     let isMounted = true;
-    (async () => {
+    
+    const fetchProducts = async () => {
       try {
-        const res = await api.get('/products');
-        if (!res.ok) throw new Error('Failed to load products');
-        const data = await res.json();
-        // Normalize items; preserve images and derive thumbnail if missing
-        const normalized = (data.items || []).map(p => {
-          const images = Array.isArray(p.images) ? p.images : [];
-          const thumbnail = p.thumbnail || (images.length > 0 ? images[0] : null);
-          return {
-            id: p.id,
-            name: p.name,
-            price: p.price,
-            category: p.category,
-            thumbnail,
-            images,
-            soldOut: !!p.soldOut,
-            sizes: Array.isArray(p.sizes) ? p.sizes : [],
-            colors: Array.isArray(p.colors) ? p.colors : [],
-          };
-        });
-        if (isMounted) setProducts(normalized);
-      } catch (e) {
-        console.error('[Products] Failed to fetch products:', e);
+        const productsRef = collection(db, 'products');
+        const q = query(productsRef, where('active', '!=', false)); // Only fetch active products
+        const querySnapshot = await getDocs(q);
+        
+        if (isMounted) {
+          const productsData = querySnapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data(),
+            // Ensure arrays are properly initialized
+            images: Array.isArray(doc.data().images) ? doc.data().images : [],
+            sizes: Array.isArray(doc.data().sizes) ? doc.data().sizes : [],
+            colors: Array.isArray(doc.data().colors) ? doc.data().colors : [],
+            // Ensure thumbnail exists or use first image
+            thumbnail: doc.data().thumbnail || (Array.isArray(doc.data().images) && doc.data().images[0]) || null
+          }));
+          
+          setProducts(productsData);
+        }
+      } catch (error) {
+        console.error('Error fetching products:', error);
         if (isMounted) setProducts([]);
       }
-    })();
-    return () => { isMounted = false; };
+    };
+    
+    fetchProducts();
+    
+    return () => {
+      isMounted = false;
+    };
   }, []);
 
   // Get category from URL params (allow only t-shirt and pants)

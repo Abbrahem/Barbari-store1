@@ -1,19 +1,13 @@
 rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Products: public read, admin-only write
-    match /products/{doc} {
+    // Allow read access to all products for everyone
+    match /products/{productId} {
       allow read: if true;
-      allow write: if request.auth != null && request.auth.token.admin == true;
+      allow write: if false; // No write access from client
     }
-
-    // Orders: anyone can create (checkout), admin can read/update/delete
-    match /orders/{doc} {
-      allow create: if true;
-      allow read, update, delete: if request.auth != null && request.auth.token.admin == true;
-    }
-
-    // Deny everything else by default
+    
+    // Default deny all other operations
     match /{document=**} {
       allow read, write: if false;
     }
