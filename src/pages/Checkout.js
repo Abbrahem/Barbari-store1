@@ -121,7 +121,7 @@ const Checkout = () => {
                   <div key={index} className="flex items-center gap-4 border-b border-gray-200 pb-4">
                     <div className="w-16 h-16 rounded-lg overflow-hidden flex-shrink-0 bg-white border flex items-center justify-center">
                       <img
-                        src={item.image || 'https://via.placeholder.com/100x100?text=No+Image'}
+                        src={item.image || 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAwIiBoZWlnaHQ9IjQwMCIgdmlld0JveD0iMCAwIDYwMCA0MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI2MDAiIGhlaWdodD0iNDAwIiBmaWxsPSIjRjNGNEY2Ii8+Cjx0ZXh0IHg9IjMwMCIgeT0iMjAwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBmaWxsPSIjOUI5QjlCIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMjQiPk5vIEltYWdlPC90ZXh0Pgo8L3N2Zz4K'}
                         alt={item.name}
                         className="max-w-full max-h-full object-contain"
                       />

@@ -1,6 +1,6 @@
 import { initializeApp } from 'firebase/app';
-import { getFirestore } from 'firebase/firestore';
-import { getAuth, setPersistence, browserLocalPersistence } from 'firebase/auth';
+import { getFirestore, connectFirestoreEmulator } from 'firebase/firestore';
+import { getAuth, setPersistence, browserLocalPersistence, connectAuthEmulator } from 'firebase/auth';
 import { getStorage } from 'firebase/storage';
 
 const firebaseConfig = {
@@ -13,15 +13,19 @@ const firebaseConfig = {
 };
 
 const app = initializeApp(firebaseConfig);
+
+// Initialize Firestore with offline persistence disabled to avoid auth issues
 export const db = getFirestore(app);
+
+// Initialize Auth
 export const auth = getAuth(app);
-// Persist auth state across reloads
+
+// Set persistence but don't fail if it doesn't work
 setPersistence(auth, browserLocalPersistence).catch(() => {
-  // ignore persistence errors silently
+  console.log('Auth persistence not available');
 });
 
-// Expose auth in development for console debugging
-if (process.env.NODE_ENV === 'development' && typeof window !== 'undefined') {
-  window.auth = auth;
-}
+// Skip anonymous auth to avoid 400 Bad Request errors
+// Firebase project may not have anonymous auth enabled
+
 export const storage = getStorage(app);

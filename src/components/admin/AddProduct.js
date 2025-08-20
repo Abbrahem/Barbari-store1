@@ -148,20 +148,21 @@ const AddProduct = ({ editProduct = null, onDoneEdit }) => {
       };
       let res;
       if (editProduct && editProduct.id) {
-        // Update product: send JSON; backend should keep existing images if none are provided
-        res = await api.put(`/products/${editProduct.id}`, payload, { requireAuth: true });
+        // Update product: send as FormData with images
+        const formData = new FormData();
+        formData.append('data', JSON.stringify(payload));
+        selectedImages.forEach((file, index) => {
+          formData.append('images', file);
+        });
+        res = await api.putForm(`/products/${editProduct.id}`, formData, { requireAuth: true });
       } else {
-        // Create product: upload images to Firebase Storage and send URLs as JSON
-        const storage = getStorage();
-        const uploadedUrls = [];
-        for (const file of selectedImages) {
-          const path = `products/${Date.now()}_${Math.random().toString(36).slice(2)}_${file.name}`;
-          const fileRef = storageRef(storage, path);
-          await uploadBytes(fileRef, file);
-          const url = await getDownloadURL(fileRef);
-          uploadedUrls.push(url);
-        }
-        res = await api.post('/products', { ...payload, images: uploadedUrls }, { requireAuth: true });
+        // Create product: send images as FormData to backend (backend will handle base64 conversion)
+        const formData = new FormData();
+        formData.append('data', JSON.stringify(payload));
+        selectedImages.forEach((file, index) => {
+          formData.append('images', file);
+        });
+        res = await api.postForm('/products', formData, { requireAuth: true });
       }
 
       if (!res.ok) {

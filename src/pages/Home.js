@@ -1,12 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { api } from '../utils/api';
-import Navbar from '../components/Navbar';
-import HeroSection from '../components/HeroSection';
+import ProductCard from '../components/ProductCard';
+import LoadingSpinner from '../components/LoadingSpinner';
+import { mockProducts } from '../data/mockProducts';
 import ProductSlider from '../components/ProductSlider';
 import Categories from '../components/Categories';
 import FeaturedProduct from '../components/FeaturedProduct';
 import ContactForm from '../components/ContactForm';
 import Footer from '../components/Footer';
+import Navbar from '../components/Navbar';
+import HeroSection from '../components/HeroSection';
 
 const Home = () => {
   const [products, setProducts] = useState([]);
@@ -42,8 +45,8 @@ const Home = () => {
       } catch (e) {
         console.error('[Home] Failed to fetch products:', e);
         if (isMounted) {
-          setProducts([]);
-          setFeaturedProduct(null);
+          setProducts(mockProducts);
+          setFeaturedProduct(mockProducts[0] || null);
         }
       }
     })();

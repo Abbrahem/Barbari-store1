@@ -115,7 +115,7 @@ const ProductDetail = () => {
               {/* Main Image */}
               <div className="mb-4 bg-white border rounded-lg overflow-hidden flex items-center justify-center">
                 <img
-                  src={(Array.isArray(product.images) && product.images.length > 0 ? product.images[mainImage] : 'https://via.placeholder.com/800x600?text=No+Image')}
+                  src={(Array.isArray(product.images) && product.images.length > 0 ? product.images[mainImage] : 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAwIiBoZWlnaHQ9IjQwMCIgdmlld0JveD0iMCAwIDYwMCA0MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI2MDAiIGhlaWdodD0iNDAwIiBmaWxsPSIjRjNGNEY2Ii8+Cjx0ZXh0IHg9IjMwMCIgeT0iMjAwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBmaWxsPSIjOUI5QjlCIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMjQiPk5vIEltYWdlPC90ZXh0Pgo8L3N2Zz4K')}
                   alt={product.name}
                   className="w-full max-h-64 sm:max-h-80 md:max-h-96 object-contain"
                 />

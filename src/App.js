@@ -9,6 +9,7 @@ import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
 import CategoriesPage from './pages/CategoriesPage';
 import ContactPage from './pages/ContactPage';
+import SplashScreen from './components/SplashScreen';
 import { CartProvider } from './context/CartContext';
 import { AuthProvider } from './context/AuthContext';
 import ManageOrders from './components/admin/ManageOrders';
@@ -20,7 +21,8 @@ function App() {
         <Router>
           <div className="App">
             <Routes>
-              <Route path="/" element={<Home />} />
+              <Route path="/" element={<SplashScreen />} />
+              <Route path="/home" element={<Home />} />
               <Route path="/products" element={<Products />} />
               <Route path="/product/:id" element={<ProductDetail />} />
               <Route path="/cart" element={<Cart />} />
