@@ -17,8 +17,8 @@ router.post('/', async (req, res) => {
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
-    const ref = await col.add(payload);
-    res.status(201).json({ id: ref.id, ...payload });
+    const doc = await col.add(payload);
+    res.json({ id: doc.id, ...payload });
   } catch (e) {
     res.status(400).json({ error: e.message });
   }
@@ -37,9 +37,13 @@ router.get('/', verifyFirebaseToken, async (_req, res) => {
 
 // Get order by id (admin)
 router.get('/:id', verifyFirebaseToken, async (req, res) => {
-  const doc = await col.doc(req.params.id).get();
-  if (!doc.exists) return res.status(404).json({ error: 'Not found' });
-  res.json({ id: doc.id, ...doc.data() });
+  try {
+    const doc = await col.doc(req.params.id).get();
+    if (!doc.exists) return res.status(404).json({ error: 'Not found' });
+    res.json({ id: doc.id, ...doc.data() });
+  } catch (e) {
+    res.status(500).json({ error: e.message });
+  }
 });
 
 // Update order status (admin)

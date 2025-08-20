@@ -11,7 +11,8 @@ module.exports = async function handler(req, res) {
     try {
       res.setHeader('Cache-Control', 'no-store');
       const { limit = 20 } = req.query;
-      // Simple query without orderBy to avoid index issues in new Firestore
+      
+      // Get real data from Firestore
       const snap = await col.limit(Number(limit)).get();
       const items = snap.docs.map((d) => ({ id: d.id, ...d.data() }));
       return res.status(200).json({ items, nextCursor: snap.docs.at(-1)?.id || null });

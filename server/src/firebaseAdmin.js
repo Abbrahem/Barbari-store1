@@ -4,68 +4,73 @@ import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 
-// Load .env file from the current working directory (should be /server)
+// Load environment from server/.env if present
 dotenv.config({ path: path.resolve(process.cwd(), '.env') });
 
 // ESM dirname helpers
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// TEMPORARY FIX: Set hardcoded values for development if .env fails to load
-if (!process.env.GOOGLE_APPLICATION_CREDENTIALS) {
-  console.log('[Firebase] .env file not loaded properly. Using hardcoded development values.');
-  process.env.GOOGLE_APPLICATION_CREDENTIALS = './shevoo-store-firebase-adminsdk-fbsvc-0f464cc77a.json';
-  process.env.FIREBASE_PROJECT_ID = 'shevoo-store';
-  process.env.FIREBASE_STORAGE_BUCKET = 'shevoo-store.appspot.com';
-  process.env.PORT = '5000';
-  process.env.CORS_ORIGIN = 'http://localhost:3000';
-}
-
-// Strict check for environment variables. The server will not start without them.
-if (!process.env.GOOGLE_APPLICATION_CREDENTIALS) {
-  console.error('FATAL ERROR: GOOGLE_APPLICATION_CREDENTIALS environment variable is not set.');
-  process.exit(1);
-}
-if (!process.env.FIREBASE_PROJECT_ID) {
-  console.error('FATAL ERROR: FIREBASE_PROJECT_ID environment variable is not set.');
-  process.exit(1);
-}
-
-// Resolve service account path robustly: if relative, resolve from server/ directory
-const rawCredPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
-const serviceAccountPath = path.isAbsolute(rawCredPath)
-  ? rawCredPath
-  : path.resolve(path.join(__dirname, '..'), rawCredPath);
-
-console.log(`[Firebase] Initializing with credentials @ ${serviceAccountPath} (from env: ${rawCredPath})`);
-
-try {
-  let credential;
-  // Prefer explicit service account JSON to avoid picking up user ADC that can cause UNAUTHENTICATED
-  let resolvedProjectId = process.env.FIREBASE_PROJECT_ID;
-  if (process.env.GOOGLE_APPLICATION_CREDENTIALS && fs.existsSync(serviceAccountPath)) {
-    const json = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf-8'));
-    credential = admin.credential.cert(json);
-    resolvedProjectId = json.project_id || resolvedProjectId;
-    console.log(`[Firebase] Using service account JSON via credential.cert (project_id: ${resolvedProjectId}, client_email: ${json.client_email})`);
-  } else {
-    console.warn('[Firebase] GOOGLE_APPLICATION_CREDENTIALS not set or file missing; using in-memory fallback JSON if provided');
-    const jsonRaw = process.env.FIREBASE_SERVICE_ACCOUNT_JSON || '';
-    if (!jsonRaw) throw new Error('No service account JSON available');
-    const json = JSON.parse(jsonRaw);
-    credential = admin.credential.cert(json);
-    resolvedProjectId = json.project_id || resolvedProjectId;
+// Resolve service account JSON located in server/
+function resolveServiceAccountPath() {
+  // 1) Respect explicit env var if provided
+  const envPath = process.env.GOOGLE_APPLICATION_CREDENTIALS;
+  if (envPath) {
+    const p = path.isAbsolute(envPath) ? envPath : path.resolve(process.cwd(), envPath);
+    if (fs.existsSync(p)) return p;
+    console.warn('[Firebase] GOOGLE_APPLICATION_CREDENTIALS set but file not found at:', p);
   }
 
-  admin.initializeApp({
-    credential,
-    projectId: resolvedProjectId,
-  });
-  console.log(`[Firebase] Successfully initialized for project: ${resolvedProjectId}`);
-} catch (error) {
-  console.error(`[Firebase] CRITICAL: Failed to initialize Firebase Admin.`);
-  console.error(`[Firebase] Underlying error: ${error.message}`);
-  process.exit(1);
+  // 2) Try known filenames in server/ directory
+  const candidates = [
+    'shevoo-store-firebase-adminsdk-fbsvc-339b2c15a9.json', // new key
+    'shevoo-store-firebase-adminsdk-fbsvc-0f464cc77a.json', // old key
+  ].map((f) => path.resolve(__dirname, `../${f}`));
+
+  for (const c of candidates) {
+    if (fs.existsSync(c)) return c;
+  }
+
+  // 3) As a last resort, scan server/ for any service account file that matches pattern
+  try {
+    const serverDir = path.resolve(__dirname, '..');
+    const files = fs.readdirSync(serverDir).filter((f) => f.includes('firebase-adminsdk') && f.endsWith('.json'));
+    if (files.length) {
+      // Pick the most recently modified
+      const sorted = files
+        .map((f) => ({ f, m: fs.statSync(path.join(serverDir, f)).mtimeMs }))
+        .sort((a, b) => b.m - a.m);
+      return path.join(serverDir, sorted[0].f);
+    }
+  } catch {}
+
+  return null;
+}
+
+const serviceAccountPath = resolveServiceAccountPath();
+console.log('[Firebase] Service account path:', serviceAccountPath || '(not found)');
+
+try {
+  if (!fs.existsSync(serviceAccountPath)) {
+    throw new Error(`Service account file not found at ${serviceAccountPath}`);
+  }
+
+  const serviceAccount = JSON.parse(fs.readFileSync(serviceAccountPath, 'utf-8'));
+
+  if (!admin.apps.length) {
+    admin.initializeApp({
+      credential: admin.credential.cert(serviceAccount),
+      projectId: serviceAccount.project_id,
+      storageBucket: `${serviceAccount.project_id}.appspot.com`,
+      databaseURL: `https://${serviceAccount.project_id}-default-rtdb.firebaseio.com/`
+    });
+    console.log(`[Firebase] Admin SDK initialized for project ${serviceAccount.project_id}`);
+  }
+
+} catch (err) {
+  console.error('[Firebase] Failed to initialize Admin SDK:', err.message);
+  // Fail fast so we fix credentials rather than silently using mocks
+  throw err;
 }
 
 const db = admin.firestore();
@@ -74,5 +79,4 @@ db.settings({ ignoreUndefinedProperties: true });
 const auth = admin.auth();
 const storage = admin.storage();
 
-// Export the initialized services
 export { admin, db, auth, storage };
