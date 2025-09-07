@@ -68,10 +68,10 @@ const VideoLoadingScreen = () => {
       </div>
 
       <div className="social-icons">
-        <a href="#" className="social-icon">
+        <a href="https://www.instagram.com/barbari.eg/" target="_blank" rel="noopener noreferrer" className="social-icon">
           <FaInstagram />
         </a>
-        <a href="#" className="social-icon">
+        <a href="https://www.tiktok.com/@barbari_eg" target="_blank" rel="noopener noreferrer" className="social-icon">
           <FaTiktok />
         </a>
       </div>
