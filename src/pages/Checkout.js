@@ -15,7 +15,7 @@ const Checkout = () => {
     phone2: ''
   });
 
-  const deliveryFee = 120;
+  const deliveryFee = 110;
   const totalPrice = getTotalPrice() + deliveryFee;
 
   const handleChange = (e) => {

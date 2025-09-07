@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import Swal from 'sweetalert2';
-import { auth, db, storage } from '../../firebase/config';
-import { ref as storageRef, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { auth, db } from '../../firebase/config';
 import { addDoc, collection, doc, serverTimestamp, updateDoc } from 'firebase/firestore';
 
 const AddProduct = ({ editProduct = null, onDoneEdit }) => {
@@ -137,22 +136,22 @@ const AddProduct = ({ editProduct = null, onDoneEdit }) => {
         return;
       }
 
-      // Upload selected images to Firebase Storage and collect URLs
-      let uploadedUrls = [];
+      // Convert selected images to base64 Data URLs (store directly in Firestore)
+      const fileToDataUrl = (file) => new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result);
+        reader.onerror = reject;
+        reader.readAsDataURL(file);
+      });
+
+      let uploadedDataUrls = [];
       if (selectedImages.length > 0) {
-        uploadedUrls = await Promise.all(
-          selectedImages.map(async (file) => {
-            const path = `products/${Date.now()}_${file.name}`;
-            const ref = storageRef(storage, path);
-            await uploadBytes(ref, file);
-            return await getDownloadURL(ref);
-          })
-        );
+        uploadedDataUrls = await Promise.all(selectedImages.map(fileToDataUrl));
       }
 
       if (editProduct && editProduct.id) {
         // Update existing product
-        const nextImages = uploadedUrls.length > 0 ? [...(formData.images || []), ...uploadedUrls] : (formData.images || []);
+        const nextImages = uploadedDataUrls.length > 0 ? [...(formData.images || []), ...uploadedDataUrls] : (formData.images || []);
         const updatePayload = {
           name: formData.name,
           price: Number(formData.price),
@@ -167,7 +166,7 @@ const AddProduct = ({ editProduct = null, onDoneEdit }) => {
         await updateDoc(doc(db, 'products', editProduct.id), updatePayload);
       } else {
         // Create new product
-        const images = uploadedUrls;
+        const images = uploadedDataUrls;
         const createPayload = {
           name: formData.name,
           price: Number(formData.price),

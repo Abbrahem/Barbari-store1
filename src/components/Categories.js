@@ -1,7 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import barbritshirt from '../assets/barbritshirt.jpg';
-import pants3 from '../assets/pants3.png';
 
 const Categories = () => {
   const categories = [
@@ -10,12 +9,6 @@ const Categories = () => {
       name: 'T-Shirt',
       image: barbritshirt,
       description: 'A wide variety of stylish t-shirts'
-    },
-    {
-      id: 'pants',
-      name: 'Pants',
-      image: pants3,
-      description: 'Trendy and comfortable pants'
     }
   ];
 
