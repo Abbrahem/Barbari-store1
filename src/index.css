@@ -13,8 +13,8 @@ body {
   font-family: 'Inter', 'Cairo', sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background-color: #f8fafc;
-  color: #1a1a1a;
+  background-color: #0f0f0f;
+  color: #ffffff;
 }
 
 /* Custom Animations */
@@ -69,17 +69,17 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f1f1;
+  background: #1a1a1a;
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(45deg, #dc2626, #ef4444);
+  background: linear-gradient(45deg, #4a4a4a, #6a6a6a);
   border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(45deg, #b91c1c, #dc2626);
+  background: linear-gradient(45deg, #6a6a6a, #8a8a8a);
 }
 
 /* Product Grid Responsive */
@@ -130,4 +130,74 @@ body {
   background: rgba(255, 255, 255, 0.1);
   backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Water Button Effect */
+.water-button {
+  position: relative;
+  overflow: hidden;
+}
+
+.water-button:hover {
+  box-shadow: 0 0 30px rgba(255, 255, 255, 0.3);
+  transform: translateY(-2px);
+}
+
+.water-left {
+  transform-origin: left center;
+}
+
+.water-right {
+  transform-origin: right center;
+}
+
+.water-button:active .water-left,
+.water-button:active .water-right {
+  background: rgba(255, 255, 255, 0.4);
+}
+
+/* Ripple Animation */
+@keyframes ripple {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(4);
+    opacity: 0;
+  }
+}
+
+.water-button::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.3);
+  transform: translate(-50%, -50%);
+  transition: width 0.6s, height 0.6s;
+}
+
+.water-button:active::after {
+  width: 300px;
+  height: 300px;
+}
+
+/* Bottom Sheet Animation */
+@keyframes slide-up {
+  from {
+    transform: translateY(100%);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-slide-up {
+  animation: slide-up 0.3s ease-out;
 }

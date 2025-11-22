@@ -50,10 +50,10 @@ const Products = () => {
     };
   }, []);
 
-  // Get category from URL params (allow only t-shirt and pants)
+  // Get category from URL params (allow only t-shirt, hoodies, zip-up, crow-nek)
   useEffect(() => {
     const category = searchParams.get('category');
-    const allowed = new Set(['t-shirt', 'pants']);
+    const allowed = new Set(['t-shirt', 'hoodies', 'zip-up', 'crow-nek']);
     if (category && allowed.has(category)) {
       setSelectedCategory(category);
     } else if (category && !allowed.has(category)) {
@@ -90,11 +90,11 @@ const Products = () => {
   };
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-dark">
       <Navbar />
       
       <div className="container mx-auto px-4 py-8">
-        <h1 className="text-4xl font-bold text-center mb-8 text-dark">
+        <h1 className="text-4xl font-bold text-center mb-8 text-white">
           Products
         </h1>
 
@@ -107,7 +107,7 @@ const Products = () => {
               placeholder="Search for a product..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-dark focus:border-transparent"
+              className="w-full px-4 py-3 bg-dark-secondary border border-gray-700 rounded-lg focus:ring-2 focus:ring-white focus:border-transparent text-white placeholder-gray-400"
             />
           </div>
 
@@ -117,8 +117,8 @@ const Products = () => {
               onClick={() => handleCategoryChange('all')}
               className={`px-6 py-2 rounded-lg font-semibold transition-colors ${
                 selectedCategory === 'all'
-                  ? 'bg-dark text-white'
-                  : 'bg-gray-200 text-dark hover:bg-gray-300'
+                  ? 'bg-white text-black'
+                  : 'bg-dark-card text-white hover:bg-gray-700 border border-gray-700'
               }`}
             >
               All
@@ -127,23 +127,42 @@ const Products = () => {
               onClick={() => handleCategoryChange('t-shirt')}
               className={`px-6 py-2 rounded-lg font-semibold transition-colors ${
                 selectedCategory === 't-shirt'
-                  ? 'bg-dark text-white'
-                  : 'bg-gray-200 text-dark hover:bg-gray-300'
+                  ? 'bg-white text-black'
+                  : 'bg-dark-card text-white hover:bg-gray-700 border border-gray-700'
               }`}
             >
-              T-Shirt
+              T-Shirts
             </button>
             <button
-              onClick={() => handleCategoryChange('pants')}
+              onClick={() => handleCategoryChange('hoodies')}
               className={`px-6 py-2 rounded-lg font-semibold transition-colors ${
-                selectedCategory === 'pants'
-                  ? 'bg-dark text-white'
-                  : 'bg-gray-200 text-dark hover:bg-gray-300'
+                selectedCategory === 'hoodies'
+                  ? 'bg-white text-black'
+                  : 'bg-dark-card text-white hover:bg-gray-700 border border-gray-700'
               }`}
             >
-              Pants
+              Hoodies
             </button>
-            {/* Shoes category removed */}
+            <button
+              onClick={() => handleCategoryChange('zip-up')}
+              className={`px-6 py-2 rounded-lg font-semibold transition-colors ${
+                selectedCategory === 'zip-up'
+                  ? 'bg-white text-black'
+                  : 'bg-dark-card text-white hover:bg-gray-700 border border-gray-700'
+              }`}
+            >
+              Zip-Up
+            </button>
+            <button
+              onClick={() => handleCategoryChange('crow-nek')}
+              className={`px-6 py-2 rounded-lg font-semibold transition-colors ${
+                selectedCategory === 'crow-nek'
+                  ? 'bg-white text-black'
+                  : 'bg-dark-card text-white hover:bg-gray-700 border border-gray-700'
+              }`}
+            >
+              Crow Nek
+            </button>
           </div>
         </div>
 
@@ -156,7 +175,7 @@ const Products = () => {
           </div>
         ) : (
           <div className="text-center py-12">
-            <p className="text-xl text-gray-600 mb-4">
+            <p className="text-xl text-gray-300 mb-4">
               No products available
             </p>
           </div>

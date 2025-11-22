@@ -48,18 +48,18 @@ const AdminLogin = () => {
   };
 
   return (
-    <div className="min-h-screen bg-light-gray flex items-center justify-center">
+    <div className="min-h-screen bg-dark flex items-center justify-center">
       <div className="max-w-md w-full">
-        <div className="bg-white rounded-lg shadow-lg p-8">
+        <div className="bg-dark-card rounded-lg shadow-2xl p-8 border border-gray-800">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold text-dark mb-2">Barbari Store</h1>
-            <p className="text-gray-600">Admin Login</p>
+            <h1 className="text-3xl font-bold text-white mb-2">Barbari Store</h1>
+            <p className="text-gray-300">Admin Login</p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             {/* Email */}
             <div>
-              <label htmlFor="email" className="block text-sm font-medium text-dark mb-2">
+              <label htmlFor="email" className="block text-sm font-medium text-white mb-2">
                 Email
               </label>
               <input
@@ -69,14 +69,14 @@ const AdminLogin = () => {
                 value={formData.email}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-dark focus:border-transparent"
+                className="w-full px-4 py-3 bg-dark-secondary border border-gray-700 rounded-lg focus:ring-2 focus:ring-white focus:border-transparent text-white placeholder-gray-400"
                 placeholder="Enter your email"
               />
             </div>
 
             {/* Password */}
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-dark mb-2">
+              <label htmlFor="password" className="block text-sm font-medium text-white mb-2">
                 Password
               </label>
               <input
@@ -86,7 +86,7 @@ const AdminLogin = () => {
                 value={formData.password}
                 onChange={handleChange}
                 required
-                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-dark focus:border-transparent"
+                className="w-full px-4 py-3 bg-dark-secondary border border-gray-700 rounded-lg focus:ring-2 focus:ring-white focus:border-transparent text-white placeholder-gray-400"
                 placeholder="Enter your password"
               />
             </div>
@@ -94,13 +94,13 @@ const AdminLogin = () => {
             {/* Submit Button */}
             <button
               type="submit"
-              className="w-full bg-dark text-white py-3 px-6 rounded-lg hover:bg-gray-800 transition-colors duration-300 font-semibold"
+              className="w-full bg-white text-black py-3 px-6 rounded-lg hover:bg-gray-200 transition-colors duration-300 font-semibold"
             >
               Log In
             </button>
           </form>
 
-          <div className="mt-6 text-center text-sm text-gray-600">
+          <div className="mt-6 text-center text-sm text-gray-400">
             <p>Use your Firebase admin account to sign in.</p>
           </div>
         </div>

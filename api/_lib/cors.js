@@ -3,6 +3,8 @@
 const ALLOWED_ORIGINS = [
   'http://localhost:3000',
   'http://127.0.0.1:3000',
+  'https://barbari-store01-b3g8.vercel.app',
+  'https://shevoo-store.vercel.app', // backup domain
   process.env.FRONTEND_ORIGIN || ''
 ].filter(Boolean);
 

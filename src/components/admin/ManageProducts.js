@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Swal from 'sweetalert2';
 import { auth, db } from '../../firebase/config';
 import { collection, getDocs, deleteDoc, doc, updateDoc } from 'firebase/firestore';
+import { sortSizes } from '../../utils/sizeUtils';
 
 const ManageProducts = ({ onEdit }) => {
   const [products, setProducts] = useState([]);
@@ -137,7 +138,7 @@ const ManageProducts = ({ onEdit }) => {
                       <div className="text-xs text-gray-500 mb-1">Available Sizes</div>
                       <div className="flex flex-wrap gap-1">
                         {(product.sizes || []).length > 0 ? (
-                          (product.sizes || []).map((size) => (
+                          sortSizes(product.sizes || []).map((size) => (
                             <span key={size} className="px-2 py-0.5 bg-blue-100 text-blue-800 rounded text-[11px]">{size}</span>
                           ))
                         ) : (
@@ -240,7 +241,7 @@ const ManageProducts = ({ onEdit }) => {
                       </td>
                       <td className="py-3 px-4">
                         <div className="flex flex-wrap gap-1">
-                          {(product.sizes || []).map((size) => (
+                          {sortSizes(product.sizes || []).map((size) => (
                             <span key={size} className="px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs">
                               {size}
                             </span>

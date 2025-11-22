@@ -4,7 +4,7 @@ import { db } from '../firebase/config';
 import ProductCard from '../components/ProductCard';
 import LoadingSpinner from '../components/LoadingSpinner';
 import { mockProducts } from '../data/mockProducts';
-import ProductSlider from '../components/ProductSlider';
+
 import Categories from '../components/Categories';
 import FeaturedProduct from '../components/FeaturedProduct';
 import ContactForm from '../components/ContactForm';
@@ -56,10 +56,9 @@ const Home = () => {
   }, []);
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-dark">
       <Navbar />
       <HeroSection />
-      <ProductSlider products={products} />
       <Categories />
       <FeaturedProduct product={featuredProduct} />
       <ContactForm />

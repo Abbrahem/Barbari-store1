@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import AddProduct from '../components/admin/AddProduct';
 import ManageProducts from '../components/admin/ManageProducts';
 import ManageOrders from '../components/admin/ManageOrders';
+import PromoCodeManager from '../components/admin/PromoCodeManager';
 import { useAuth } from '../context/AuthContext';
 import { signOut } from 'firebase/auth';
 import { auth } from '../firebase/config';
@@ -56,20 +57,22 @@ const AdminDashboard = () => {
         return <ManageProducts onEdit={handleEditProduct} />;
       case 'orders':
         return <ManageOrders />;
+      case 'promo-codes':
+        return <PromoCodeManager />;
       default:
         return <AddProduct editProduct={editProduct} onDoneEdit={handleDoneEdit} />;
     }
   };
 
   return (
-    <div className="min-h-screen bg-light-gray">
+    <div className="min-h-screen bg-dark">
       {/* Header */}
-      <header className="bg-dark text-white p-4">
+      <header className="bg-dark-secondary text-white p-4 border-b border-gray-800">
         <div className="container mx-auto flex justify-between items-center">
           <h1 className="text-2xl font-bold">Barbari Store - Admin Dashboard</h1>
           <button
             onClick={handleLogout}
-            className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+            className="bg-white text-black px-4 py-2 rounded-lg hover:bg-gray-200 transition-colors"
           >
             Log out
           </button>
@@ -77,7 +80,7 @@ const AdminDashboard = () => {
       </header>
 
       {/* Navigation Tabs */}
-      <div className="bg-white shadow-lg">
+      <div className="bg-dark-card shadow-lg border-b border-gray-800">
         <div className="container mx-auto px-4">
           {/* Responsive tabs without horizontal scroll */}
           <div className="px-0">
@@ -86,8 +89,8 @@ const AdminDashboard = () => {
                 onClick={() => setActiveTab('manage-products')}
                 className={`flex-1 basis-1/2 sm:basis-auto py-3 px-4 text-sm sm:text-base font-semibold transition-colors border-b-2 ${
                   activeTab === 'manage-products'
-                    ? 'text-dark border-dark'
-                    : 'text-gray-600 border-transparent hover:text-dark'
+                    ? 'text-white border-white'
+                    : 'text-gray-400 border-transparent hover:text-white'
                 }`}
               >
                 Manage Products
@@ -96,21 +99,31 @@ const AdminDashboard = () => {
                 onClick={() => setActiveTab('orders')}
                 className={`flex-1 basis-1/2 sm:basis-auto py-3 px-4 text-sm sm:text-base font-semibold transition-colors border-b-2 ${
                   activeTab === 'orders'
-                    ? 'text-dark border-dark'
-                    : 'text-gray-600 border-transparent hover:text-dark'
+                    ? 'text-white border-white'
+                    : 'text-gray-400 border-transparent hover:text-white'
                 }`}
               >
                 Orders
               </button>
               <button
                 onClick={() => setActiveTab('add-product')}
-                className={`w-full sm:w-auto py-3 px-4 text-sm sm:text-base font-semibold transition-colors border-b-2 ${
+                className={`flex-1 basis-1/2 sm:basis-auto py-3 px-4 text-sm sm:text-base font-semibold transition-colors border-b-2 ${
                   activeTab === 'add-product'
-                    ? 'text-dark border-dark'
-                    : 'text-gray-600 border-transparent hover:text-dark'
+                    ? 'text-white border-white'
+                    : 'text-gray-400 border-transparent hover:text-white'
                 }`}
               >
                 Add New Product
+              </button>
+              <button
+                onClick={() => setActiveTab('promo-codes')}
+                className={`w-full sm:w-auto py-3 px-4 text-sm sm:text-base font-semibold transition-colors border-b-2 ${
+                  activeTab === 'promo-codes'
+                    ? 'text-white border-white'
+                    : 'text-gray-400 border-transparent hover:text-white'
+                }`}
+              >
+                Promo Codes
               </button>
             </div>
           </div>

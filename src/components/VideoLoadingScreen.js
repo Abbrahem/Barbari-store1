@@ -1,18 +1,24 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { FaInstagram, FaTiktok } from 'react-icons/fa';
+import videoFile from '../assets/vd1.mp4';
 
 const VideoLoadingScreen = () => {
   const navigate = useNavigate();
   const videoRef = useRef(null);
+  const [videoLoaded, setVideoLoaded] = useState(false);
 
   useEffect(() => {
     let redirectTimer;
 
     // Play video when component mounts
     if (videoRef.current) {
-      videoRef.current.playbackRate = 1.0; // Ensure normal playback speed
-      videoRef.current.currentTime = 0; // Start from beginning
+      const video = videoRef.current;
+      
+      // Simple setup
+      video.muted = false;
+      video.playsInline = true;
+      video.volume = 1.0;
       
       // Listen for video end event
       const handleVideoEnd = () => {
@@ -22,19 +28,39 @@ const VideoLoadingScreen = () => {
         }, 1000);
       };
 
-      videoRef.current.addEventListener('ended', handleVideoEnd);
-      
-      videoRef.current.play().catch(error => {
-        console.log('Video autoplay failed:', error);
-      });
-
-      // Cleanup event listener
-      return () => {
-        if (videoRef.current) {
-          videoRef.current.removeEventListener('ended', handleVideoEnd);
+      // Handle video ready to play
+      const handleCanPlay = async () => {
+        setVideoLoaded(true);
+        console.log('Video can play - starting muted autoplay');
+        
+        try {
+          video.muted = true;
+          await video.play();
+          console.log('Video playing muted successfully');
+        } catch (error) {
+          console.log('Video play failed:', error);
         }
-        if (redirectTimer) {
-          clearTimeout(redirectTimer);
+      };
+
+      // Handle video loaded
+      const handleLoadedData = () => {
+        setVideoLoaded(true);
+      };
+
+      video.addEventListener('ended', handleVideoEnd);
+      video.addEventListener('canplay', handleCanPlay);
+      video.addEventListener('loadeddata', handleLoadedData);
+      
+      // Force load
+      video.load();
+
+      // Cleanup
+      return () => {
+        if (redirectTimer) clearTimeout(redirectTimer);
+        if (video) {
+          video.removeEventListener('ended', handleVideoEnd);
+          video.removeEventListener('canplay', handleCanPlay);
+          video.removeEventListener('loadeddata', handleLoadedData);
         }
       };
     }
@@ -47,15 +73,32 @@ const VideoLoadingScreen = () => {
   return (
     <div className="video-loading-screen">
       <div className="video-container">
+        {!videoLoaded && (
+          <div className="video-placeholder">
+            <div className="loading-spinner"></div>
+          </div>
+        )}
         <video
           ref={videoRef}
-          className="loading-video"
+          className={`loading-video ${videoLoaded ? 'loaded' : 'loading'}`}
           muted
           playsInline
           preload="auto"
+          autoPlay
           controls={false}
+          onError={(e) => {
+            console.log('Video error:', e);
+            console.log('Video src:', videoFile);
+          }}
+          onLoadStart={() => console.log('Video loading started')}
+          onCanPlay={() => console.log('Video can play')}
+          onPlay={() => console.log('Video started playing')}
+          onLoadedMetadata={() => console.log('Video metadata loaded')}
+          onLoadedData={() => console.log('Video data loaded')}
         >
-          <source src="/vd1.mp4" type="video/mp4" />
+          <source src={videoFile} type="video/mp4" />
+          <source src={videoFile} type="video/webm" />
+          <source src={videoFile} type="video/ogg" />
           Your browser does not support the video tag.
         </video>
         
@@ -106,6 +149,42 @@ const VideoLoadingScreen = () => {
           height: 100%;
           object-fit: contain;
           background: #000;
+          transition: opacity 0.5s ease;
+        }
+
+        .loading-video.loading {
+          opacity: 0;
+        }
+
+        .loading-video.loaded {
+          opacity: 1;
+        }
+
+        .video-placeholder {
+          position: absolute;
+          top: 0;
+          left: 0;
+          width: 100%;
+          height: 100%;
+          background: #000;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          z-index: 5;
+        }
+
+        .loading-spinner {
+          width: 50px;
+          height: 50px;
+          border: 3px solid rgba(255, 255, 255, 0.3);
+          border-top: 3px solid white;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+          0% { transform: rotate(0deg); }
+          100% { transform: rotate(360deg); }
         }
 
         .enter-button {
@@ -134,6 +213,7 @@ const VideoLoadingScreen = () => {
         .enter-button:active {
           transform: translate(-50%, -50%) scale(0.95);
         }
+
 
         .social-icons {
           position: absolute;
@@ -177,6 +257,7 @@ const VideoLoadingScreen = () => {
             bottom: 20px;
             gap: 15px;
           }
+
         }
 
         @media (max-width: 480px) {
@@ -197,6 +278,7 @@ const VideoLoadingScreen = () => {
             bottom: 15px;
             gap: 12px;
           }
+
         }
       `}</style>
     </div>

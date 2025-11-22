@@ -2,14 +2,16 @@ import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getFirestore, enableIndexedDbPersistence } from 'firebase/firestore';
 import { getAuth, setPersistence, browserLocalPersistence } from 'firebase/auth';
 import { getStorage } from 'firebase/storage';
+import { getAnalytics, isSupported } from 'firebase/analytics';
 
 const firebaseConfig = {
   apiKey: "AIzaSyAq2Tlp8Wy-tjleciZZZCT7cfvRaov4AMY",
   authDomain: "shevoo-store.firebaseapp.com",
   projectId: "shevoo-store",
-  storageBucket: "shevoo-store.appspot.com",
+  storageBucket: "shevoo-store.firebasestorage.app",
   messagingSenderId: "301845318717",
-  appId: "1:301845318717:web:7ba290a077650cb9e26e54"
+  appId: "1:301845318717:web:59e0d30f7589ab32e26e54",
+  measurementId: "G-B37B3M4C22"
 };
 
 // Initialize Firebase
@@ -48,6 +50,21 @@ if (typeof window !== 'undefined') {
 
 // Initialize Storage
 export const storage = getStorage(app);
+
+// Initialize Analytics (only in browser environment)
+let analytics = null;
+if (typeof window !== 'undefined') {
+  isSupported().then((supported) => {
+    if (supported) {
+      analytics = getAnalytics(app);
+      console.log('Firebase Analytics initialized');
+    }
+  }).catch((error) => {
+    console.warn('Analytics not supported:', error);
+  });
+}
+
+export { analytics };
 
 // Log Firebase initialization
 console.log('Firebase initialized successfully');

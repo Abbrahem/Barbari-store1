@@ -1,10 +1,20 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
-import { FaHeart, FaShoppingCart } from 'react-icons/fa';
+import { Link, useNavigate } from 'react-router-dom';
+import { FaShoppingCart } from 'react-icons/fa';
+import { useCart } from '../context/CartProvider';
+import { sortSizes } from '../utils/sizeUtils';
+import Swal from 'sweetalert2';
 
 const ProductCard = ({ product }) => {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const [isHovered, setIsHovered] = useState(false);
+  const [showQuickOrder, setShowQuickOrder] = useState(false);
+  const [selectedSize, setSelectedSize] = useState('');
+  const [selectedColor, setSelectedColor] = useState('');
+  const [quantity, setQuantity] = useState(1);
+  
+  const { addToCart } = useCart();
+  const navigate = useNavigate();
 
   // Fallback images handling
   const placeholder = 'data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAwIiBoZWlnaHQ9IjQwMCIgdmlld0JveD0iMCAwIDYwMCA0MDAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSI2MDAiIGhlaWdodD0iNDAwIiBmaWxsPSIjRjNGNEY2Ii8+Cjx0ZXh0IHg9IjMwMCIgeT0iMjAwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiBmaWxsPSIjOUI5QjlCIiBmb250LWZhbWlseT0iQXJpYWwiIGZvbnQtc2l6ZT0iMjQiPk5vIEltYWdlPC90ZXh0Pgo8L3N2Zz4K';
@@ -32,18 +42,53 @@ const ProductCard = ({ product }) => {
 
   const isSoldOut = !!product.soldOut;
 
+  const handleQuickOrder = () => {
+    if (!selectedSize || !selectedColor) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Missing selection',
+        text: 'Please choose size and color',
+        confirmButtonText: 'OK'
+      });
+      return;
+    }
+    addToCart(product, selectedSize, selectedColor, quantity);
+    navigate('/checkout');
+  };
+
+  const handleAddToCart = () => {
+    if (!selectedSize || !selectedColor) {
+      Swal.fire({
+        icon: 'warning',
+        title: 'Missing selection',
+        text: 'Please choose size and color',
+        confirmButtonText: 'OK'
+      });
+      return;
+    }
+    addToCart(product, selectedSize, selectedColor, quantity);
+    Swal.fire({
+      icon: 'success',
+      title: 'Added to Cart',
+      text: 'Product has been added to your cart',
+      confirmButtonText: 'OK'
+    });
+    setShowQuickOrder(false);
+  };
+
   return (
     <div 
-      className="bg-white rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 group"
+      className="relative group"
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
     >
+      <div className="bg-dark-card rounded-2xl shadow-lg overflow-hidden hover:shadow-2xl transition-all duration-500 transform hover:-translate-y-3 border border-gray-800">
       {/* Image Container */}
       <div className="relative h-72 overflow-hidden">
         <img
           src={images[currentImageIndex]}
           alt={product.name}
-          className={`w-full h-full object-contain bg-white transition-transform duration-700 ${isSoldOut ? 'opacity-60 grayscale' : ''}`}
+          className={`w-full h-full object-contain bg-dark-secondary transition-transform duration-700 ${isSoldOut ? 'opacity-60 grayscale' : ''}`}
         />
         {/* SOLD OUT Banner (prominent) */}
         {isSoldOut && (
@@ -52,16 +97,15 @@ const ProductCard = ({ product }) => {
           </div>
         )}
         
-        {/* Overlay with Quick Actions */}
-        <div className={`absolute inset-0 ${isSoldOut ? 'bg-black/20 opacity-100' : 'bg-black/20'} transition-opacity duration-300 ${isHovered && !isSoldOut ? 'opacity-100' : ''}`}>
-          <div className="absolute top-4 right-4 flex flex-col space-y-2">
-            <button className={`w-10 h-10 bg-white/90 rounded-full flex items-center justify-center transition-all duration-300 transform ${isSoldOut ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-500 hover:text-white hover:scale-110'}`}>
-              <FaHeart className="text-gray-600 group-hover:text-red-500" />
-            </button>
-            <button className={`w-10 h-10 bg-white/90 rounded-full flex items-center justify-center transition-all duration-300 transform ${isSoldOut ? 'opacity-50 cursor-not-allowed' : 'hover:bg-red-500 hover:text-white hover:scale-110'}`}>
-              <FaShoppingCart className="text-gray-600 group-hover:text-red-500" />
-            </button>
-          </div>
+        {/* Quick Action Button - Always Visible */}
+        <div className="absolute top-4 right-4 z-10">
+          <button 
+            onClick={() => setShowQuickOrder(!showQuickOrder)}
+            className={`w-10 h-10 bg-white/90 rounded-full flex items-center justify-center transition-all duration-300 transform shadow-lg ${isSoldOut ? 'opacity-50 cursor-not-allowed' : 'hover:bg-white hover:scale-110'}`}
+            disabled={isSoldOut}
+          >
+            <FaShoppingCart className="text-gray-600" />
+          </button>
         </div>
         
         {/* Image Navigation Dots */}
@@ -83,15 +127,17 @@ const ProductCard = ({ product }) => {
 
       </div>
 
+
+
       {/* Product Info */}
       <div className="p-6">
-        <h3 className={`text-xl font-bold mb-3 text-gray-800 line-clamp-2 transition-colors duration-300 ${isSoldOut ? 'line-through text-gray-500' : 'group-hover:text-red-600'}`}>
+        <h3 className={`text-xl font-bold mb-3 text-white line-clamp-2 transition-colors duration-300 ${isSoldOut ? 'line-through text-gray-500' : 'group-hover:text-gray-300'}`}>
           {product.name}
         </h3>
         
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center space-x-2">
-            <span className={`text-2xl font-bold ${isSoldOut ? 'text-gray-500' : 'text-red-600'}`}>
+            <span className={`text-2xl font-bold ${isSoldOut ? 'text-gray-500' : 'text-white'}`}>
               {product.price} EGP
             </span>
             {product.originalPrice && (
@@ -104,7 +150,7 @@ const ProductCard = ({ product }) => {
           {/* Rating */}
           <div className="flex items-center space-x-1">
             <span className="text-yellow-400">★</span>
-            <span className="text-sm text-gray-600">4.8</span>
+            <span className="text-sm text-gray-300">4.8</span>
           </div>
         </div>
         
@@ -112,7 +158,7 @@ const ProductCard = ({ product }) => {
           <button
             type="button"
             disabled
-            className="block w-full bg-gray-400 text-white text-center py-3 rounded-xl cursor-not-allowed font-semibold shadow"
+            className="block w-full bg-gray-600 text-gray-400 text-center py-3 rounded-xl cursor-not-allowed font-semibold shadow"
             aria-disabled="true"
           >
             Sold Out
@@ -120,12 +166,121 @@ const ProductCard = ({ product }) => {
         ) : (
           <Link
             to={`/product/${product.id}`}
-            className="block w-full bg-gradient-to-r from-red-600 to-red-700 text-white text-center py-3 rounded-xl hover:from-red-700 hover:to-red-800 transition-all duration-300 font-semibold transform hover:scale-105 shadow-lg hover:shadow-xl"
+            className="block w-full bg-white text-black text-center py-3 rounded-xl hover:bg-gray-200 transition-all duration-300 font-semibold transform hover:scale-105 shadow-lg hover:shadow-xl"
           >
             View Details
           </Link>
         )}
       </div>
+      </div>
+
+      {/* Quick Order Bottom Sheet Modal */}
+      {showQuickOrder && !isSoldOut && (
+        <>
+          {/* Backdrop */}
+          <div 
+            className="fixed inset-0 bg-black/50 z-50"
+            onClick={() => setShowQuickOrder(false)}
+          />
+          
+          {/* Bottom Sheet */}
+          <div className="fixed bottom-0 left-0 right-0 bg-dark-card border-t border-gray-700 rounded-t-3xl shadow-2xl z-50 animate-slide-up max-h-[70vh] overflow-y-auto">
+            <div className="p-6">
+              {/* Handle Bar */}
+              <div className="w-12 h-1 bg-gray-600 rounded-full mx-auto mb-6"></div>
+              
+              {/* Product Info Header */}
+              <div className="flex items-start space-x-4 mb-6 pb-4 border-b border-gray-700">
+              <div className="w-20 h-20 rounded-xl overflow-hidden flex-shrink-0 bg-dark-secondary">
+                <img
+                  src={images[0]}
+                  alt={product.name}
+                  className="w-full h-full object-contain"
+                />
+              </div>
+              <div className="flex-1 min-w-0">
+                <h4 className="font-bold text-white text-lg truncate">{product.name}</h4>
+                <p className="text-white font-bold text-xl">{product.price} EGP</p>
+              </div>
+            </div>
+
+              <div className="space-y-6">
+                <div>
+                  <h5 className="font-semibold text-white mb-3 text-base">Size:</h5>
+                  <div className="flex flex-wrap gap-2">
+                    {sortSizes(product.sizes || []).map((size) => (
+                      <button
+                        key={size}
+                        onClick={() => setSelectedSize(size)}
+                        className={`px-4 py-2 border rounded-lg text-sm transition-colors ${
+                          selectedSize === size
+                            ? 'bg-white text-black border-white'
+                            : 'bg-dark-secondary text-white border-gray-700 hover:border-white'
+                        }`}
+                      >
+                        {size}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                
+                <div>
+                  <h5 className="font-semibold text-white mb-3 text-base">Color:</h5>
+                  <div className="flex flex-wrap gap-2">
+                    {(product.colors || []).map((color) => (
+                      <button
+                        key={color}
+                        onClick={() => setSelectedColor(color)}
+                        className={`px-4 py-2 border rounded-lg text-sm transition-colors ${
+                          selectedColor === color
+                            ? 'bg-white text-black border-white'
+                            : 'bg-dark-secondary text-white border-gray-700 hover:border-white'
+                        }`}
+                      >
+                        {color}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                
+                <div>
+                  <h5 className="font-semibold text-white mb-3 text-base">Quantity:</h5>
+                  <div className="flex items-center space-x-4">
+                    <button
+                      onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                      className="w-10 h-10 bg-dark-secondary border border-gray-700 text-white rounded-lg flex items-center justify-center hover:bg-gray-700"
+                    >
+                      -
+                    </button>
+                    <span className="text-xl font-bold w-8 text-center text-white">{quantity}</span>
+                    <button
+                      onClick={() => setQuantity(quantity + 1)}
+                      className="w-10 h-10 bg-dark-secondary border border-gray-700 text-white rounded-lg flex items-center justify-center hover:bg-gray-700"
+                    >
+                      +
+                    </button>
+                  </div>
+                </div>
+                
+                <div className="flex space-x-3 pt-4">
+                  <button
+                    onClick={handleAddToCart}
+                    className="flex-[0.7] bg-white text-black py-4 px-6 rounded-xl hover:bg-gray-200 transition-colors text-lg font-bold"
+                  >
+                    Add to Cart
+                  </button>
+                  <button
+                    onClick={() => setShowQuickOrder(false)}
+                    className="flex-[0.3] bg-dark-secondary border border-gray-700 text-white py-4 px-6 rounded-xl hover:bg-gray-700 transition-colors text-lg font-bold"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </>
+      )}
     </div>
   );
 };

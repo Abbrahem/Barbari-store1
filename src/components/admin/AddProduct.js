@@ -17,6 +17,7 @@ const AddProduct = ({ editProduct = null, onDoneEdit }) => {
   const [selectedImages, setSelectedImages] = useState([]);
   const [user, setUser] = useState(null);
   const [authReady, setAuthReady] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
     const unsub = auth.onAuthStateChanged((u) => {
@@ -42,15 +43,17 @@ const AddProduct = ({ editProduct = null, onDoneEdit }) => {
     }
   }, [editProduct]);
 
+  // نفس المقاسات والألوان لكل الكاتيجوريز (مثل t-shirts)
+  const standardOptions = {
+    colors: ['White', 'Black', 'Gray', 'Pink', 'Red', 'Blue', 'Baby Blue', 'Beige', 'Brown'],
+    sizes: ['S', 'M', 'L', 'XS', 'XL', 'XXL']
+  };
+
   const categoryOptions = {
-    't-shirt': {
-      colors: ['White', 'Black', 'Gray', 'Pink', 'Red', 'Blue', 'Baby Blue', 'Beige', 'Brown'],
-      sizes: ['XS', 'S', 'M', 'L', 'XL', 'XXL']
-    },
-    'pants': {
-      colors: ['White', 'Black', 'Light Blue', 'Dark Blue', 'Teal', 'Dark Green', 'Brown', 'Gray'],
-      sizes: ['30', '32', '34', '36', '38', '40']
-    }
+    't-shirt': standardOptions,
+    'hoodies': standardOptions,
+    'zip-up': standardOptions,
+    'crow-nek': standardOptions
   };
 
   const handleChange = (e) => {
@@ -130,23 +133,80 @@ const AddProduct = ({ editProduct = null, onDoneEdit }) => {
       }
     }
 
+    setIsSubmitting(true);
+
+    // Show loading message
+    Swal.fire({
+      title: editProduct ? 'Updating Product...' : 'Adding Product...',
+      text: 'Please wait while we process your request',
+      allowOutsideClick: false,
+      allowEscapeKey: false,
+      showConfirmButton: false,
+      didOpen: () => {
+        Swal.showLoading();
+      }
+    });
+
     try {
       if (!user) {
         Swal.fire({ icon: 'error', title: 'Not signed in', text: 'Please sign in to add products.' });
+        setIsSubmitting(false);
         return;
       }
 
-      // Convert selected images to base64 Data URLs (store directly in Firestore)
+      // Convert selected images to base64 Data URLs with compression
       const fileToDataUrl = (file) => new Promise((resolve, reject) => {
         const reader = new FileReader();
-        reader.onload = () => resolve(reader.result);
+        reader.onload = () => {
+          // Compress image if it's too large
+          const img = new Image();
+          img.onload = () => {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            
+            // Set max dimensions
+            const maxWidth = 800;
+            const maxHeight = 600;
+            let { width, height } = img;
+            
+            // Calculate new dimensions
+            if (width > height) {
+              if (width > maxWidth) {
+                height = (height * maxWidth) / width;
+                width = maxWidth;
+              }
+            } else {
+              if (height > maxHeight) {
+                width = (width * maxHeight) / height;
+                height = maxHeight;
+              }
+            }
+            
+            canvas.width = width;
+            canvas.height = height;
+            
+            // Draw and compress
+            ctx.drawImage(img, 0, 0, width, height);
+            const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.7);
+            resolve(compressedDataUrl);
+          };
+          img.src = reader.result;
+        };
         reader.onerror = reject;
         reader.readAsDataURL(file);
       });
 
       let uploadedDataUrls = [];
       if (selectedImages.length > 0) {
-        uploadedDataUrls = await Promise.all(selectedImages.map(fileToDataUrl));
+        // Process images one by one to show progress
+        for (let i = 0; i < selectedImages.length; i++) {
+          Swal.update({
+            title: `Processing image ${i + 1} of ${selectedImages.length}...`,
+            text: 'Please wait while we optimize your images'
+          });
+          const dataUrl = await fileToDataUrl(selectedImages[i]);
+          uploadedDataUrls.push(dataUrl);
+        }
       }
 
       if (editProduct && editProduct.id) {
@@ -185,9 +245,10 @@ const AddProduct = ({ editProduct = null, onDoneEdit }) => {
 
       Swal.fire({
         icon: 'success',
-        title: editProduct ? 'Updated' : 'Added',
+        title: editProduct ? 'Updated!' : 'Added!',
         text: editProduct ? 'Product has been updated successfully' : 'Product has been added successfully',
-        confirmButtonText: 'OK'
+        confirmButtonText: 'OK',
+        timer: 3000
       });
 
       // After update, go back to manage products; after create, reset form
@@ -206,7 +267,15 @@ const AddProduct = ({ editProduct = null, onDoneEdit }) => {
         setSelectedImages([]);
       }
     } catch (error) {
-      Swal.fire({ icon: 'error', title: 'Failed', text: error.message || 'Failed to add product' });
+      console.error('Error adding/updating product:', error);
+      Swal.fire({ 
+        icon: 'error', 
+        title: 'Failed', 
+        text: error.message || 'Failed to add product. Please try again.',
+        confirmButtonText: 'OK'
+      });
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -225,13 +294,13 @@ const AddProduct = ({ editProduct = null, onDoneEdit }) => {
 
   return (
     <div className="max-w-4xl mx-auto">
-      <div className="bg-white rounded-lg shadow-lg p-8">
-        <h2 className="text-2xl font-bold mb-6 text-dark">{editProduct ? 'Edit Product' : 'Add New Product'}</h2>
+      <div className="bg-dark-card rounded-lg shadow-lg p-8 border border-gray-800">
+        <h2 className="text-2xl font-bold mb-6 text-white">{editProduct ? 'Edit Product' : 'Add New Product'}</h2>
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {/* Product Name */}
           <div>
-            <label htmlFor="name" className="block text-sm font-medium text-dark mb-2">
+            <label htmlFor="name" className="block text-sm font-medium text-white mb-2">
               Product Name
             </label>
             <input
@@ -241,14 +310,14 @@ const AddProduct = ({ editProduct = null, onDoneEdit }) => {
               value={formData.name}
               onChange={handleChange}
               required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-dark focus:border-transparent"
+              className="w-full px-4 py-3 bg-dark-secondary border border-gray-700 rounded-lg focus:ring-2 focus:ring-white focus:border-transparent text-white placeholder-gray-400"
               placeholder="Enter product name"
             />
           </div>
 
           {/* Price */}
           <div>
-            <label htmlFor="price" className="block text-sm font-medium text-dark mb-2">
+            <label htmlFor="price" className="block text-sm font-medium text-white mb-2">
               Price (EGP)
             </label>
             <input
@@ -258,14 +327,14 @@ const AddProduct = ({ editProduct = null, onDoneEdit }) => {
               value={formData.price}
               onChange={handleChange}
               required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-dark focus:border-transparent"
+              className="w-full px-4 py-3 bg-dark-secondary border border-gray-700 rounded-lg focus:ring-2 focus:ring-white focus:border-transparent text-white placeholder-gray-400"
               placeholder="Enter price"
             />
           </div>
 
           {/* Description */}
           <div>
-            <label htmlFor="description" className="block text-sm font-medium text-dark mb-2">
+            <label htmlFor="description" className="block text-sm font-medium text-white mb-2">
               Description
             </label>
             <textarea
@@ -275,14 +344,14 @@ const AddProduct = ({ editProduct = null, onDoneEdit }) => {
               onChange={handleChange}
               required
               rows="4"
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-dark focus:border-transparent resize-none"
+              className="w-full px-4 py-3 bg-dark-secondary border border-gray-700 rounded-lg focus:ring-2 focus:ring-white focus:border-transparent resize-none text-white placeholder-gray-400"
               placeholder="Enter product description"
             />
           </div>
 
           {/* Category */}
           <div>
-            <label htmlFor="category" className="block text-sm font-medium text-dark mb-2">
+            <label htmlFor="category" className="block text-sm font-medium text-white mb-2">
               Category
             </label>
             <select
@@ -291,23 +360,25 @@ const AddProduct = ({ editProduct = null, onDoneEdit }) => {
               value={formData.category}
               onChange={handleChange}
               required
-              className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-dark focus:border-transparent"
+              className="w-full px-4 py-3 bg-dark-secondary border border-gray-700 rounded-lg focus:ring-2 focus:ring-white focus:border-transparent text-white"
             >
               <option value="">Select category</option>
-              <option value="t-shirt">T-Shirt</option>
-              <option value="pants">Pants</option>
+              <option value="t-shirt">T-Shirts</option>
+              <option value="hoodies">Hoodies</option>
+              <option value="zip-up">Zip-Up</option>
+              <option value="crow-nek">Crow Nek</option>
             </select>
           </div>
 
           {/* Sizes */}
           {formData.category && (
             <div>
-              <label className="block text-sm font-medium text-dark mb-2">
+              <label className="block text-sm font-medium text-white mb-2">
                 Available Sizes
               </label>
               <div className="grid grid-cols-3 gap-2">
                 {categoryOptions[formData.category]?.sizes.map((size) => (
-                  <label key={size} className="flex items-center">
+                  <label key={size} className="flex items-center text-white">
                     <input
                       type="checkbox"
                       checked={formData.sizes.includes(size)}
@@ -324,12 +395,12 @@ const AddProduct = ({ editProduct = null, onDoneEdit }) => {
           {/* Colors */}
           {formData.category && (
             <div>
-              <label className="block text-sm font-medium text-dark mb-2">
+              <label className="block text-sm font-medium text-white mb-2">
                 Available Colors
               </label>
               <div className="grid grid-cols-3 gap-2">
                 {categoryOptions[formData.category]?.colors.map((color) => (
-                  <label key={color} className="flex items-center">
+                  <label key={color} className="flex items-center text-white">
                     <input
                       type="checkbox"
                       checked={formData.colors.includes(color)}
@@ -345,7 +416,7 @@ const AddProduct = ({ editProduct = null, onDoneEdit }) => {
 
           {/* Image Upload */}
           <div>
-            <label className="block text-sm font-medium text-dark mb-2">
+            <label className="block text-sm font-medium text-white mb-2">
               Product Images (max 5)
             </label>
             {/* Hidden native input to allow multi-select; triggered by the button below */}
@@ -359,15 +430,15 @@ const AddProduct = ({ editProduct = null, onDoneEdit }) => {
             />
             <label
               htmlFor="images"
-              className="inline-flex items-center justify-center px-4 py-2 bg-dark text-white rounded-lg cursor-pointer hover:bg-gray-800 transition-colors"
+              className="inline-flex items-center justify-center px-4 py-2 bg-white text-black rounded-lg cursor-pointer hover:bg-gray-200 transition-colors"
             >
               Upload Images
             </label>
             {editProduct ? (
-              <p className="text-xs text-gray-500 mt-1">In edit mode, uploading images is optional. Existing images will remain if you don't upload new ones.</p>
+              <p className="text-xs text-gray-400 mt-1">In edit mode, uploading images is optional. Existing images will remain if you don't upload new ones.</p>
             ) : null}
             {selectedImages.length > 0 && (
-              <p className="text-sm text-gray-600 mt-2">
+              <p className="text-sm text-gray-300 mt-2">
                 {selectedImages.length} image(s) selected
               </p>
             )}
@@ -384,10 +455,15 @@ const AddProduct = ({ editProduct = null, onDoneEdit }) => {
             </button>
             <button
               type="submit"
-              disabled={!authReady || !user}
-              className="flex-1 bg-dark text-white py-3 px-6 rounded-lg hover:bg-gray-800 transition-colors duration-300 font-semibold"
+              disabled={!authReady || !user || isSubmitting}
+              className="flex-1 bg-white text-black py-3 px-6 rounded-lg hover:bg-gray-200 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-300 font-semibold"
             >
-              {(!authReady || !user) ? 'Sign in required' : (editProduct ? 'Update Product' : 'Add New Product')}
+              {isSubmitting ? (
+                <div className="flex items-center justify-center gap-2">
+                  <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-black"></div>
+                  {editProduct ? 'Updating...' : 'Adding...'}
+                </div>
+              ) : (!authReady || !user) ? 'Sign in required' : (editProduct ? 'Update Product' : 'Add New Product')}
             </button>
           </div>
         </form>
